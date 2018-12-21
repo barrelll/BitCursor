@@ -1,120 +1,197 @@
-#![allow(dead_code)]
 mod tests;
 
-use std::{
-    cell::Cell,
-    fmt::Debug,
-    io::Cursor,
-    ops::{Shl, Shr},
-};
+use std::io::{Cursor, Result, Seek, SeekFrom, Error, ErrorKind};
 
-pub trait Bits: Shl + Shr + Sized + Debug + Clone {
-    const SIZE: u8;
-    fn bit_at(&self, idx: u8) -> Result<bool, std::io::ErrorKind>;
-    fn shr(&self, by: u8) -> Self;
-    fn shl(&self, by: u8) -> Self;
-    fn cut(&self, by: u8) -> Self;
-}
+macro_rules! impl_byte {
+    ( $( $x:ty, $y:expr ),* ) => {
+        $(
+            impl Byte for $x {
+                const SIZE: u8 = $y;
+                type SelfType = $x;
 
-macro_rules! impl_bits {
-    ($type: ty, $size: expr) => {
-        impl Bits for $type {
-            const SIZE: u8 = $size;
-            fn bit_at(&self, idx: u8) -> Result<bool, std::io::ErrorKind> {
-                if idx > Self::SIZE {
-                    Err(std::io::ErrorKind::InvalidInput)
-                } else {
-                    Ok(*self & (1 << idx) > 0)
+                fn add(&mut self, other: Self::SelfType) {
+                    *self += other;
+                }
+                fn sub(&mut self, other: Self::SelfType) {
+                    *self -= other;
+                }
+                fn mul(&mut self, other: Self::SelfType) {
+                    *self *= other;
+                }
+                fn div(&mut self, other: Self::SelfType) {
+                    *self /= other;
+                }
+                fn mdl(&mut self, other: Self::SelfType) {
+                    *self %= other;
+                }
+                fn shr(&mut self, other: Self::SelfType) {
+                    *self >>= other;
+                }
+                fn shl(&mut self, other: Self::SelfType) {
+                    *self <<= other;
+                }
+
+                fn add_ret(self, other: Self::SelfType) -> Option<Self::SelfType> {
+                    self.checked_add(other)
+                }
+                fn sub_ret(self, other: Self::SelfType) -> Option<Self::SelfType> {
+                    self.checked_sub(other)
+                }
+                fn mul_ret(self, other: Self::SelfType) -> Option<Self::SelfType> {
+                    self.checked_mul(other)
+                }
+                fn div_ret(self, other: Self::SelfType) -> Option<Self::SelfType> {
+                    self.checked_div(other)
+                }
+                fn shr_ret(self, other: u32) -> Option<Self::SelfType> {
+                    self.checked_shr(other)
+                }
+                fn shl_ret(self, other: u32) -> Option<Self::SelfType> {
+                    self.checked_shl(other)
+                }
+                fn mdl_ret(self, other: Self::SelfType) -> Self::SelfType {
+                    self % other
                 }
             }
-        
-            fn shr(&self, by: u8) -> $type {
-                *self >> by
-            }
-        
-            fn shl(&self, by: u8) -> $type {
-                *self << by
-            }
-        
-            fn cut(&self, by: u8) -> $type {
-                let x = *self << by;
-                x >> by
-            }
-        }
+        )*
     };
 }
 
-impl_bits!(u8, 8);
-impl_bits!(u16, 16);
-impl_bits!(u32, 32);
-impl_bits!(u64, 64);
-impl_bits!(u128, 128);
+pub trait Byte {
+    const SIZE: u8;
+    type SelfType;
 
-impl_bits!(i8, 8);
-impl_bits!(i16, 16);
-impl_bits!(i32, 32);
-impl_bits!(i64, 64);
-impl_bits!(i128, 128);
+    fn add(&mut self, other: Self::SelfType);
+    fn sub(&mut self, other: Self::SelfType);
+    fn mul(&mut self, other: Self::SelfType);
+    fn div(&mut self, other: Self::SelfType);
+    fn mdl(&mut self, other: Self::SelfType);
+    fn shr(&mut self, other: Self::SelfType);
+    fn shl(&mut self, other: Self::SelfType);
 
-#[derive(Debug)]
-pub struct BitCursor<'a, T: 'a + Bits> {
-    idx: Cell<u8>,
-    byte_cursor: Cursor<&'a [T]>,
+    fn add_ret(self, other: Self::SelfType) -> Option<Self::SelfType>;
+    fn sub_ret(self, other: Self::SelfType) -> Option<Self::SelfType>;
+    fn mul_ret(self, other: Self::SelfType) -> Option<Self::SelfType>;
+    fn div_ret(self, other: Self::SelfType) -> Option<Self::SelfType>;
+    fn shr_ret(self, other: u32) -> Option<Self::SelfType>;
+    fn shl_ret(self, other: u32) -> Option<Self::SelfType>;
+    fn mdl_ret(self, other: Self::SelfType) -> Self::SelfType;
 }
 
-impl<'a, T: 'a + Bits> BitCursor<'a, T> {
-    fn bit_position(&self) -> u8 {
-        self.idx.get()
+impl_byte!(
+    u8, 8, u16, 16, u32, 32, u64, 64, u128, 128, i8, 8, i16, 16, i32, 32, i64, 64, i128, 128
+);
+
+pub trait ByteIterator {
+    fn max_size() -> u8;
+
+    fn blen(&self) -> usize;
+}
+
+impl<T: Byte> ByteIterator for Vec<T> {
+    fn max_size() -> u8 {
+        T::SIZE
     }
 
-    fn byte_position(&self) -> u64 {
-        self.byte_cursor.position()
+    fn blen(&self) -> usize {
+        self.len()
+    }
+}
+
+impl<T: Byte> ByteIterator for &[T] {
+    fn max_size() -> u8 {
+        T::SIZE
     }
 
-    fn move_bit_cursor(&self, idx: u8) {
-        self.idx.set(idx);
+    fn blen(&self) -> usize {
+        self.len()
     }
+}
 
-    fn move_byte_cursor(&mut self, idx: u64) {
-        self.byte_cursor.set_position(idx);
-        self.idx.set(0);
-    }
+#[derive(Debug, Clone)]
+pub struct BitCursor<T: ByteIterator> {
+    bit_pos: u8,
+    cursor: Cursor<T>,
+}
 
-    pub fn new(from: &'a [T]) -> BitCursor<'a, T> {
-        let idx = Cell::new(0);
-        let byte_cursor = Cursor::new(from);
-        BitCursor { idx, byte_cursor }
-    }
-
-    pub fn is_byte_aligned(&self) -> bool {
-        self.idx.get() % 8 == 7
-    }
-
-    pub fn next_bits(&self) -> Option<Vec<T>> {
-        let byte_index = self.byte_position() as usize;
-        let bytes = &self.byte_cursor.get_ref()[byte_index..];
-        if !self.is_byte_aligned() || self.idx.get() != 0 {
-            let mut v = bytes.to_vec();
-            match v.first_mut() {
-                Some(val) => *val = val.cut(self.idx.get()),
-                None => return None,
-            }
-            Some(v)
-        } else {
-            Some(bytes.to_vec())
+impl<T: ByteIterator> BitCursor<T> {
+    pub fn new(data: T) -> BitCursor<T> {
+        BitCursor {
+            bit_pos: 0,
+            cursor: Cursor::new(data),
         }
     }
 
-    pub fn next_bits_byte_aligned(&self) -> Option<Vec<T>> {
-        let byte_index = self.byte_position() as usize;
-        if !self.is_byte_aligned() || self.idx.get() != 0 {
-            let bytes = &self.byte_cursor.get_ref()[byte_index + 1..];
-            self.idx.set(0);
-            let v = bytes.to_vec();
-            Some(v)
+    pub fn byte_aligned(&self) -> bool {
+        self.bit_pos == (T::max_size() - 1)
+    }
+
+    pub fn into_inner(self) -> T {
+        self.cursor.into_inner()
+    }
+
+    pub fn get_ref(&self) -> &T {
+        self.cursor.get_ref()
+    }
+
+    pub fn get_mut(&mut self) -> &mut T {
+        self.cursor.get_mut()
+    }
+
+    pub fn cur_position(&self) -> u64 {
+        self.cursor.position()
+    }
+
+    pub fn bit_position(&self) -> u8 {
+        self.bit_pos
+    }
+
+    pub fn set_bit_pos(&mut self, new: u8) {
+        let max = T::max_size();
+        self.bit_pos = new % max;
+        self.set_cur_pos((new / max) as u64);
+    }
+
+    pub fn set_cur_pos(&mut self, new: u64) {
+        self.cursor.set_position(new);
+    }
+}
+
+impl<T: ByteIterator> Seek for BitCursor<T> {
+    fn seek(&mut self, pos: SeekFrom) -> Result<u64> {
+        // size will always be a byte since we can only do this for Cursor with type &[u8]
+        let (base_pos, offset) = match pos {
+            SeekFrom::Start(v) => {
+                self.bit_pos = (v % (T::max_size() as u64)) as u8;
+                let seek_to = v / (T::max_size() as u64);
+                self.set_cur_pos(seek_to);
+                return Ok(seek_to);
+            }
+            SeekFrom::Current(v) => {
+                self.bit_pos = (v % (T::max_size() as i64)) as u8;
+                let seek_to = v / (T::max_size() as i64);
+                (self.cur_position(), seek_to)
+            }
+            SeekFrom::End(v) => {
+                self.bit_pos = (v % (T::max_size() as i64)) as u8;
+                let seek_to = v / (T::max_size() as i64);
+                (self.cursor.get_ref().blen() as u64, seek_to)
+            }
+        };
+        let new_pos = if offset >= 0 {
+            base_pos.checked_add(offset as u64)
         } else {
-            let bytes = &self.byte_cursor.get_ref()[byte_index..];
-            Some(bytes.to_vec())
+            base_pos.checked_add((offset.wrapping_neg()) as u64)
+        };
+        match new_pos {
+            Some(n) => {
+                self.set_cur_pos(n);
+                Ok(n)
+            }
+            None => {
+                Err(Error::new(ErrorKind::InvalidInput,
+                           "invalid seek to a negative or overflowing position"))
+            }
         }
     }
 }
