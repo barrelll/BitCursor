@@ -1,6 +1,6 @@
 mod tests;
 
-use std::io::{Cursor, Result, Seek, SeekFrom, Error, ErrorKind};
+use std::io::{Cursor, Error, ErrorKind, Result, Seek, SeekFrom};
 
 macro_rules! impl_byte {
     ( $( $x:ty, $y:expr ),* ) => {
@@ -188,10 +188,10 @@ impl<T: ByteIterator> Seek for BitCursor<T> {
                 self.set_cur_pos(n);
                 Ok(n)
             }
-            None => {
-                Err(Error::new(ErrorKind::InvalidInput,
-                           "invalid seek to a negative or overflowing position"))
-            }
+            None => Err(Error::new(
+                ErrorKind::InvalidInput,
+                "invalid seek to a negative or overflowing position",
+            )),
         }
     }
 }
