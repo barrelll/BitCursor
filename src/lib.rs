@@ -83,28 +83,41 @@ impl_byte!(
 );
 
 pub trait ByteIterator {
+    type Item;
     fn max_size() -> u8;
 
     fn blen(&self) -> usize;
+
+    fn get_slice(&self, x: usize, y: usize) -> &[Self::Item];
 }
 
 impl<T: Byte> ByteIterator for Vec<T> {
+    type Item = T;
     fn max_size() -> u8 {
         T::SIZE
     }
 
     fn blen(&self) -> usize {
         self.len()
+    }
+
+    fn get_slice(&self, x: usize, y: usize) -> &[Self::Item] {
+        &self[x..y]
     }
 }
 
 impl<T: Byte> ByteIterator for &[T] {
+    type Item = T;
     fn max_size() -> u8 {
         T::SIZE
     }
 
     fn blen(&self) -> usize {
         self.len()
+    }
+
+    fn get_slice(&self, x: usize, y: usize) -> &[Self::Item] {
+        &self[x..y]
     }
 }
 
@@ -154,6 +167,17 @@ impl<T: ByteIterator> BitCursor<T> {
 
     pub fn set_cur_pos(&mut self, new: u64) {
         self.cursor.set_position(new);
+    }
+
+    pub fn read_u8(&mut self) -> Result<u8> {
+        let curpos = self.cur_position();
+        let bitpos = self.bit_pos;
+        let data = self.cursor.get_ref();
+        let itsize = T::max_size() / 8;
+        for _ in 0..itsize {
+
+        }
+        Ok(0)
     }
 }
 
