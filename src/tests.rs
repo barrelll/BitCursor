@@ -1,8 +1,8 @@
 #![cfg(test)]
 
 mod seek {
-    use ::BitCursor;
     use std::io::{Seek, SeekFrom};
+    use BitCursor;
     #[test]
     fn seek_from_start_i32() {
         let data: [i32; 5] = [5, 7, 12, 3, 5];

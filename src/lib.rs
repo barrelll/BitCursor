@@ -24,25 +24,25 @@ macro_rules! impl_byte {
 }
 
 pub trait Unit:
-    Add<Output=Self>
+    Add<Output = Self>
     + AddAssign
-    + Sub<Output=Self>
+    + Sub<Output = Self>
     + SubAssign
-    + Shl<Output=Self>
+    + Shl<Output = Self>
     + ShlAssign
-    + Shr<Output=Self>
+    + Shr<Output = Self>
     + ShrAssign
-    + BitAnd<Output=Self>
+    + BitAnd<Output = Self>
     + BitAndAssign
-    + BitOr<Output=Self>
+    + BitOr<Output = Self>
     + BitOrAssign
-    + BitXor<Output=Self>
+    + BitXor<Output = Self>
     + BitXorAssign
-    + Mul<Output=Self>
+    + Mul<Output = Self>
     + MulAssign
-    + Div<Output=Self>
+    + Div<Output = Self>
     + DivAssign
-    + Rem<Output=Self>
+    + Rem<Output = Self>
     + RemAssign
     + Sized
     + Copy
@@ -157,14 +157,14 @@ impl<'a, I: Unit, T: Into<UnitArr<'a, I>>> Seek for BitCursor<'a, I, T> {
         // size will always be a byte since we can only do this for Cursor with type &[u8]
         let (base_pos, offset) = match pos {
             SeekFrom::Start(v) => {
-                let unitsize =  UnitArr::<I>::unit_size() as u64;
+                let unitsize = UnitArr::<I>::unit_size() as u64;
                 self.bit_pos = (v % unitsize) as u8;
                 let seek_to = v / unitsize;
                 self.set_cur_pos(seek_to);
                 return Ok(seek_to);
             }
             SeekFrom::Current(v) => {
-                let unitsize =  UnitArr::<I>::unit_size() as i64;
+                let unitsize = UnitArr::<I>::unit_size() as i64;
                 let bits = self.bit_pos as i64 + ((self.cur_position() as i64) * unitsize);
                 self.bit_pos = ((v + bits) % (unitsize)) as u8;
                 let seek_to = (v + bits) / unitsize;
@@ -172,7 +172,7 @@ impl<'a, I: Unit, T: Into<UnitArr<'a, I>>> Seek for BitCursor<'a, I, T> {
                 return Ok(seek_to as u64);
             }
             SeekFrom::End(v) => {
-                let unitsize =  UnitArr::<I>::unit_size() as i64;
+                let unitsize = UnitArr::<I>::unit_size() as i64;
                 self.bit_pos = if v >= 0 {
                     (v % unitsize) as u8
                 } else {
