@@ -1,4 +1,5 @@
 #![cfg(test)]
+pub mod seek;
 
 mod seek {
     use std::io::{Seek, SeekFrom};
