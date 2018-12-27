@@ -1,4 +1,4 @@
-mod r#mod;
+mod tests;
 
 use std::convert::{From, Into};
 use std::fmt::{Debug, Display};
