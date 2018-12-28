@@ -105,7 +105,7 @@ impl<'a, I: Unit, T: Into<UnitArr<'a, I>>> BitCursor<'a, I, T> {
         }
     }
 
-    pub fn byte_aligned(&self) -> bool {
+    pub fn aligned(&self) -> bool {
         self.bit_pos == (UnitArr::<I>::unit_size() - 1)
     }
 
