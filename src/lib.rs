@@ -3,7 +3,6 @@ mod tests;
 use std::convert::{From, Into};
 use std::fmt::{Debug, Display};
 use std::io::{Cursor, Error, ErrorKind, Result, Seek, SeekFrom};
-use std::marker::PhantomData;
 use std::ops::{
     Add, AddAssign, BitAnd, BitAndAssign, BitOr, BitOrAssign, BitXor, BitXorAssign, Div, DivAssign,
     Mul, MulAssign, Rem, RemAssign, Shl, ShlAssign, Shr, ShrAssign, Sub, SubAssign,
@@ -90,18 +89,16 @@ impl<'a, T: Unit> From<&'a [T]> for UnitArr<'a, T> {
 }
 
 #[derive(Debug, Clone)]
-pub struct BitCursor<'a, I: Unit, T: Into<UnitArr<'a, I>>> {
+pub struct BitCursor<'a, I: Unit> {
     bit_pos: u8,
     cursor: Cursor<UnitArr<'a, I>>,
-    _marker: PhantomData<&'a T>,
 }
 
-impl<'a, I: Unit, T: Into<UnitArr<'a, I>>> BitCursor<'a, I, T> {
-    pub fn new(data: T) -> BitCursor<'a, I, T> {
+impl<'a, I: Unit> BitCursor<'a, I> {
+    pub fn new<T: Into<UnitArr<'a, I>>>(data: T) -> BitCursor<'a, I> {
         BitCursor {
             bit_pos: 0,
             cursor: Cursor::new(data.into()),
-            _marker: PhantomData,
         }
     }
 
@@ -152,7 +149,7 @@ impl<'a, I: Unit, T: Into<UnitArr<'a, I>>> BitCursor<'a, I, T> {
     }
 }
 
-impl<'a, I: Unit, T: Into<UnitArr<'a, I>>> Seek for BitCursor<'a, I, T> {
+impl<'a, I: Unit> Seek for BitCursor<'a, I> {
     fn seek(&mut self, pos: SeekFrom) -> Result<u64> {
         // size will always be a byte since we can only do this for Cursor with type &[u8]
         let (base_pos, offset) = match pos {
