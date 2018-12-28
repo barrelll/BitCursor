@@ -118,10 +118,10 @@ mod i32 {
     fn seek_from_current_back_i32() {
         let data: [i32; 5] = [5, 7, 12, 3, 5];
         let mut bcurs = BitCursor::new(&data[..]);
-        bcurs.set_bit_pos(160);
+        bcurs.set_bit_pos(32);
         let curs_pos = bcurs.seek(SeekFrom::Current(-2)).unwrap();
         let bit_pos = bcurs.bit_position();
-        assert_eq!(4, curs_pos);
+        assert_eq!(0, curs_pos);
         assert_eq!(30, bit_pos);
     }
 
