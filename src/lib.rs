@@ -165,17 +165,24 @@ impl<'a, I: Unit, T: Into<UnitArr<'a, I>>> Seek for BitCursor<'a, I, T> {
             }
             SeekFrom::Current(v) => {
                 let unitsize = UnitArr::<I>::unit_size() as i128;
-                let bits = (self.bit_position() as i128) + (self.cur_position() as i128 * unitsize) + v as i128;
+                let bits = (self.bit_position() as i128)
+                    + (self.cur_position() as i128 * unitsize)
+                    + v as i128;
                 self.bit_pos = (bits % unitsize) as u8;
                 let seek_to = bits / unitsize;
                 (self.cur_position(), seek_to - self.cur_position() as i128)
             }
             SeekFrom::End(v) => {
                 let unitsize = UnitArr::<I>::unit_size() as i128;
-                let bits = (self.bit_position() as i128) + (self.get_ref().len() as i128 * unitsize) + v as i128;
+                let bits = (self.bit_position() as i128)
+                    + (self.get_ref().len() as i128 * unitsize)
+                    + v as i128;
                 self.bit_pos = (bits % unitsize) as u8;
                 let seek_to = bits / unitsize;
-                (self.get_ref().len() as u64, seek_to - self.get_ref().len() as i128)
+                (
+                    self.get_ref().len() as u64,
+                    seek_to - self.get_ref().len() as i128,
+                )
             }
         };
         let new_pos = if offset >= 0 {
