@@ -1,7 +1,7 @@
 mod tests;
 
 use std::convert::{From, Into};
-use std::fmt::{Debug, Display};
+use std::fmt::{Binary, Debug, Display};
 use std::io::{Cursor, Error, ErrorKind, Result, Seek, SeekFrom};
 use std::ops::{
     Add, AddAssign, BitAnd, BitAndAssign, BitOr, BitOrAssign, BitXor, BitXorAssign, Div, DivAssign,
@@ -16,6 +16,9 @@ macro_rules! impl_byte {
 
                 fn unitfrom(val: u128) -> $x {
                     val as $x
+                }
+                fn max_value() -> $x {
+                    $x::max_value()
                 }
                 fn into_u8(self) -> u8 { self as u8 }
                 fn into_u16(self) -> u16 { self as u16 }
@@ -59,9 +62,11 @@ pub trait Unit:
     + Clone
     + Debug
     + Display
+    + Binary
 {
     const SIZE: u8;
     fn unitfrom(val: u128) -> Self;
+    fn max_value() -> Self;
 
     fn into_u8(self) -> u8;
     fn into_u16(self) -> u16;
@@ -159,25 +164,58 @@ impl<'a, I: Unit> BitCursor<'a, I> {
         self.cursor.set_position(new);
     }
 
-    pub fn read_u8(&mut self) -> Result<u8> {
-        let shiftby = (UnitArr::<I>::unit_size() - 8) as u128;
+    pub fn read_8(&mut self) -> Result<u8> {
         let cpos = self.cur_position() as usize;
         let bpos = self.bit_position();
-        let ret = if bpos > 0 {
-            Ok(0)
+        if bpos != 0 {
+            if u8::SIZE + bpos >= I::SIZE {
+                let overlapping = ((u8::SIZE + bpos) / I::SIZE + 1) as usize;
+                if overlapping + cpos > self.get_ref().len() {
+                    return Err(Error::new(
+                            ErrorKind::InvalidData,
+                            format!("Not enough data to read {} bits", u8::SIZE).as_str(),
+                        ))
+                }
+                let mut ret_buf: u128 = 0;
+                let mut refsize = I::SIZE;
+                for val in &self.get_ref().slice[cpos..cpos+overlapping] {
+                    refsize -= u8::SIZE;
+                    ret_buf = (val.into_u128() >> (refsize + bpos) as u128).into_u128();
+                    println!("{:b}", ret_buf);
+                }
+            } else {
+                let shiftby = I::SIZE - (u8::SIZE + bpos);
+                let mut val: I = match self.get_ref().slice.get(cpos) {
+                    Some(v) => *v,
+                    None => {
+                        return Err(Error::new(
+                            ErrorKind::InvalidData,
+                            "Cursor position out of range of inner slice",
+                        ))
+                    }
+                };
+                val >>= I::unitfrom(shiftby as u128);
+                return Ok(val.into_u8());
+            }
         } else {
             let mut val: I = match self.get_ref().slice.get(cpos) {
                 Some(v) => *v,
-                None => return Err(Error::new(
-                    ErrorKind::NotFound,
-                    "Cursor position is outside of slice range",
-                )),
+                None => {
+                    return Err(Error::new(
+                        ErrorKind::InvalidData,
+                        "Cursor position out of range of inner slice",
+                    ))
+                }
             };
-            val >>= I::unitfrom(shiftby);
-            Ok(val.into_u8())
-        };
-        self.seek(SeekFrom::Current(8));
-        ret
+            match I::SIZE {
+                8 => return Ok(val.into_u8()),
+                size => {
+                    val >>= I::unitfrom((size - u8::SIZE) as u128);
+                    return Ok(val.into_u8());
+                }
+            }
+        }
+        Ok(0)
     }
 }
 

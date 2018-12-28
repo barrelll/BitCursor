@@ -1,3 +1,3 @@
 #![cfg(test)]
-pub mod seek;
 pub mod read;
+pub mod seek;
