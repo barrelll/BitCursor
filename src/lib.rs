@@ -17,6 +17,17 @@ macro_rules! impl_byte {
                 fn unitfrom(val: u128) -> $x {
                     val as $x
                 }
+                fn into_u8(self) -> u8 { self as u8 }
+                fn into_u16(self) -> u16 { self as u16 }
+                fn into_u32(self) -> u32 { self as u32 }
+                fn into_u64(self) -> u64 { self as u64 }
+                fn into_u128(self) -> u128 { self as u128 }
+
+                fn into_i8(self) -> i8 { self as i8 }
+                fn into_i16(self) -> i16 { self as i16 }
+                fn into_i32(self) -> i32 { self as i32 }
+                fn into_i64(self) -> i64 { self as i64 }
+                fn into_i128(self) -> i128 { self as i128 }
             }
         )*
     };
@@ -51,6 +62,18 @@ pub trait Unit:
 {
     const SIZE: u8;
     fn unitfrom(val: u128) -> Self;
+
+    fn into_u8(self) -> u8;
+    fn into_u16(self) -> u16;
+    fn into_u32(self) -> u32;
+    fn into_u64(self) -> u64;
+    fn into_u128(self) -> u128;
+
+    fn into_i8(self) -> i8;
+    fn into_i16(self) -> i16;
+    fn into_i32(self) -> i32;
+    fn into_i64(self) -> i64;
+    fn into_i128(self) -> i128;
 }
 
 impl_byte!(
@@ -137,15 +160,24 @@ impl<'a, I: Unit> BitCursor<'a, I> {
     }
 
     pub fn read_u8(&mut self) -> Result<u8> {
-        //        let curpos = self.cur_position();
-        //        let bitpos = self.bit_pos;
-        let data = &self.cursor.get_ref().slice()[..];
-        let itsize = UnitArr::<I>::unit_size() / 8;
-        for mut val in &data[0..itsize as usize] {
-            let something = *val * I::unitfrom(8);
-            println!("{:?}", something);
-        }
-        Ok(0)
+        let shiftby = (UnitArr::<I>::unit_size() - 8) as u128;
+        let cpos = self.cur_position() as usize;
+        let bpos = self.bit_position();
+        let ret = if bpos > 0 {
+            Ok(0)
+        } else {
+            let mut val: I = match self.get_ref().slice.get(cpos) {
+                Some(v) => *v,
+                None => return Err(Error::new(
+                    ErrorKind::NotFound,
+                    "Cursor position is outside of slice range",
+                )),
+            };
+            val >>= I::unitfrom(shiftby);
+            Ok(val.into_u8())
+        };
+        self.seek(SeekFrom::Current(8));
+        ret
     }
 }
 
