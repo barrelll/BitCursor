@@ -159,27 +159,23 @@ impl<'a, I: Unit, T: Into<UnitArr<'a, I>>> Seek for BitCursor<'a, I, T> {
             SeekFrom::Start(v) => {
                 let unitsize = UnitArr::<I>::unit_size() as u64;
                 self.bit_pos = (v % unitsize) as u8;
-                let seek_to = v / unitsize;
+                let seek_to = ((unitsize - self.bit_pos as u64) + v) / unitsize - 1;
                 self.set_cur_pos(seek_to);
                 return Ok(seek_to);
             }
             SeekFrom::Current(v) => {
                 let unitsize = UnitArr::<I>::unit_size() as i128;
-                let bits = self.bit_pos as i128 + ((self.cur_position() as i128) * unitsize);
-                self.bit_pos = (((v as i128) + bits) % (unitsize)) as u8;
-                let seek_to = ((v as i128) + bits) / unitsize;
-                self.set_cur_pos(seek_to as u64);
-                return Ok(seek_to as u64);
+                let bits = (self.bit_position() as i128) + (self.cur_position() as i128 * unitsize) + v as i128;
+                self.bit_pos = (bits % unitsize) as u8;
+                let seek_to = bits / unitsize;
+                (self.cur_position(), seek_to - self.cur_position() as i128)
             }
             SeekFrom::End(v) => {
                 let unitsize = UnitArr::<I>::unit_size() as i128;
-                self.bit_pos = if v >= 0 {
-                    ((v as i128) % unitsize) as u8
-                } else {
-                    ((v as i128) % unitsize).wrapping_neg() as u8
-                };
-                let seek_to = (v as i128) / unitsize;
-                (self.cursor.get_ref().len() as u64, seek_to)
+                let bits = (self.bit_position() as i128) + (self.get_ref().len() as i128 * unitsize) + v as i128;
+                self.bit_pos = (bits % unitsize) as u8;
+                let seek_to = bits / unitsize;
+                (self.get_ref().len() as u64, seek_to - self.get_ref().len() as i128)
             }
         };
         let new_pos = if offset >= 0 {
