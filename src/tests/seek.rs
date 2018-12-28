@@ -181,3 +181,49 @@ mod i64 {
         assert_eq!(8, bit_pos);
     }
 }
+
+mod i128 {
+    use std::io::{Seek, SeekFrom};
+    use BitCursor;
+    #[test]
+    fn seek_from_start_i128() {
+        let data: [i128; 5] = [5, 7, 12, 3, 5];
+        let mut bcurs = BitCursor::new(&data[..]);
+        let curs_pos = bcurs.seek(SeekFrom::Start(140)).unwrap();
+        let bit_pos = bcurs.bit_position();
+        assert_eq!(1, curs_pos);
+        assert_eq!(12, bit_pos);
+    }
+
+    #[test]
+    fn seek_from_current_forward_i128() {
+        let data: [i128; 5] = [5, 7, 12, 3, 5];
+        let mut bcurs = BitCursor::new(&data[..]);
+        bcurs.set_bit_pos(40);
+        let curs_pos = bcurs.seek(SeekFrom::Current(32)).unwrap();
+        let bit_pos = bcurs.bit_position();
+        assert_eq!(0, curs_pos);
+        assert_eq!(72, bit_pos);
+    }
+
+    #[test]
+    fn seek_from_current_back_i128() {
+        let data: [i128; 5] = [5, 7, 12, 3, 5];
+        let mut bcurs = BitCursor::new(&data[..]);
+        bcurs.set_bit_pos(32);
+        let curs_pos = bcurs.seek(SeekFrom::Current(-2)).unwrap();
+        let bit_pos = bcurs.bit_position();
+        assert_eq!(0, curs_pos);
+        assert_eq!(30, bit_pos);
+    }
+
+    #[test]
+    fn seek_from_end_i128() {
+        let data: [i128; 5] = [5, 7, 12, 3, 5];
+        let mut bcurs = BitCursor::new(&data[..]);
+        let curs_pos = bcurs.seek(SeekFrom::End(-120)).unwrap();
+        let bit_pos = bcurs.bit_position();
+        assert_eq!(4, curs_pos);
+        assert_eq!(8, bit_pos);
+    }
+}
