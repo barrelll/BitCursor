@@ -91,8 +91,12 @@ pub struct UnitArr<'a, T: Unit> {
 }
 
 impl<'a, T: Unit> UnitArr<'a, T> {
-    pub fn slice(&self) -> &[T] {
-        self.slice
+    pub fn slice(&self, x: usize, y: usize) -> Result<&[T]> {
+        if y > self.len() {
+            Err(Error::new(ErrorKind::Other, format!("Out of slice range! y {:?} should be less than {:?}", y, self.len())))
+        } else {
+            Ok(&self.slice[x..y])
+        }
     }
 
     pub fn len(&self) -> usize {
@@ -168,7 +172,7 @@ impl<'a, I: Unit> BitCursor<'a, I> {
         let overlap = ((bpos + prc_size) / ref_size) as usize;
         if overlap > 0 && ((bpos + prc_size) % 8 != 0) {
             let mut ret = I::unitfrom(0);
-            for (enumueration, val) in self.get_ref().slice[cpos..cpos + overlap + 1]
+            for (enumueration, val) in self.get_ref().slice(cpos, cpos + overlap + 1)?
                 .iter()
                 .enumerate()
             {
