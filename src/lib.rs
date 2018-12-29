@@ -8,7 +8,7 @@ use std::ops::{
     Mul, MulAssign, Rem, RemAssign, Shl, ShlAssign, Shr, ShrAssign, Sub, SubAssign,
 };
 
-macro_rules! impl_byte {
+macro_rules! impl_unit {
     ( $( $x:ident, $y:expr ),* ) => {
         $(
             impl Unit for $x {
@@ -81,7 +81,7 @@ pub trait Unit:
     fn into_i128(self) -> i128;
 }
 
-impl_byte!(
+impl_unit!(
     u8, 8, u16, 16, u32, 32, u64, 64, u128, 128, i8, 8, i16, 16, i32, 32, i64, 64, i128, 128
 );
 
@@ -162,9 +162,7 @@ impl<'a, I: Unit> BitCursor<'a, I> {
     }
 
     pub fn set_bit_pos(&mut self, new: u8) {
-        let max = I::SIZE;
-        self.bit_pos = new % max;
-        self.set_cur_pos((new / max) as u64);
+        self.bit_pos = new;
     }
 
     pub fn set_cur_pos(&mut self, new: u64) {

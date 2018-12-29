@@ -15,7 +15,7 @@ mod i8 {
     fn seek_from_current_forward_i8() {
         let data: [i8; 5] = [5, 7, 12, 3, 5];
         let mut bcurs = BitCursor::new(&data[..]);
-        bcurs.set_bit_pos(40);
+        bcurs.set_cur_pos(5);
         let curs_pos = bcurs.seek(SeekFrom::Current(2)).unwrap();
         let bit_pos = bcurs.bit_position();
         assert_eq!(5, curs_pos);
@@ -26,7 +26,7 @@ mod i8 {
     fn seek_from_current_back_i8() {
         let data: [i8; 5] = [5, 7, 12, 3, 5];
         let mut bcurs = BitCursor::new(&data[..]);
-        bcurs.set_bit_pos(40);
+        bcurs.set_cur_pos(5);
         let curs_pos = bcurs.seek(SeekFrom::Current(-15)).unwrap();
         let bit_pos = bcurs.bit_position();
         assert_eq!(3, curs_pos);
@@ -61,7 +61,8 @@ mod i16 {
     fn seek_from_current_forward_i16() {
         let data: [i16; 5] = [5, 7, 12, 3, 5];
         let mut bcurs = BitCursor::new(&data[..]);
-        bcurs.set_bit_pos(40);
+        bcurs.set_bit_pos(8);
+        bcurs.set_cur_pos(2);
         let curs_pos = bcurs.seek(SeekFrom::Current(2)).unwrap();
         let bit_pos = bcurs.bit_position();
         assert_eq!(2, curs_pos);
@@ -72,7 +73,8 @@ mod i16 {
     fn seek_from_current_back_i16() {
         let data: [i16; 5] = [5, 7, 12, 3, 5];
         let mut bcurs = BitCursor::new(&data[..]);
-        bcurs.set_bit_pos(40);
+        bcurs.set_bit_pos(8);
+        bcurs.set_cur_pos(2);
         let curs_pos = bcurs.seek(SeekFrom::Current(-15)).unwrap();
         let bit_pos = bcurs.bit_position();
         assert_eq!(1, curs_pos);
@@ -107,7 +109,8 @@ mod i32 {
     fn seek_from_current_forward_i32() {
         let data: [i32; 5] = [5, 7, 12, 3, 5];
         let mut bcurs = BitCursor::new(&data[..]);
-        bcurs.set_bit_pos(40);
+        bcurs.set_bit_pos(8);
+        bcurs.set_cur_pos(1);
         let curs_pos = bcurs.seek(SeekFrom::Current(32)).unwrap();
         let bit_pos = bcurs.bit_position();
         assert_eq!(2, curs_pos);
@@ -118,7 +121,7 @@ mod i32 {
     fn seek_from_current_back_i32() {
         let data: [i32; 5] = [5, 7, 12, 3, 5];
         let mut bcurs = BitCursor::new(&data[..]);
-        bcurs.set_bit_pos(32);
+        bcurs.set_cur_pos(1);
         let curs_pos = bcurs.seek(SeekFrom::Current(-2)).unwrap();
         let bit_pos = bcurs.bit_position();
         assert_eq!(0, curs_pos);
