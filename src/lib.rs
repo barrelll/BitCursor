@@ -164,7 +164,7 @@ impl<'a, I: Unit> BitCursor<'a, I> {
         self.cursor.set_position(new);
     }
 
-    pub fn read<U: Unit>(&mut self) -> Result<U> {
+    pub fn read_unit<U: Unit>(&mut self) -> Result<U> {
         let cpos = self.cur_position() as usize;
         let bpos = self.bit_position();
         let ref_size = I::SIZE;
