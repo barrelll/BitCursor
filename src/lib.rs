@@ -95,10 +95,6 @@ impl<'a, T: Unit> UnitArr<'a, T> {
         self.slice
     }
 
-    pub fn unit_size() -> u8 {
-        T::SIZE
-    }
-
     pub fn len(&self) -> usize {
         self.slice.len()
     }
@@ -131,7 +127,7 @@ impl<'a, I: Unit> BitCursor<'a, I> {
     }
 
     pub fn aligned(&self) -> bool {
-        self.bit_pos == (UnitArr::<I>::unit_size() - 1)
+        self.bit_pos == (I::SIZE - 1)
     }
 
     pub fn into_inner(self) -> UnitArr<'a, I> {
@@ -155,7 +151,7 @@ impl<'a, I: Unit> BitCursor<'a, I> {
     }
 
     pub fn set_bit_pos(&mut self, new: u8) {
-        let max = UnitArr::<I>::unit_size();
+        let max = I::SIZE;
         self.bit_pos = new % max;
         self.set_cur_pos((new / max) as u64);
     }
@@ -172,24 +168,24 @@ impl<'a, I: Unit> BitCursor<'a, I> {
         let overlap = ((bpos + prc_size) / ref_size) as usize;
         if overlap > 0 && ((bpos + prc_size) % 8 != 0) {
             let mut ret = I::unitfrom(0);
-            for (enumueration, val) in self.get_ref().slice[cpos..cpos+overlap+1].iter().enumerate() {
+            for (enumueration, val) in self.get_ref().slice[cpos..cpos + overlap + 1]
+                .iter()
+                .enumerate()
+            {
                 let shifted = match bpos.checked_sub(ref_size * enumueration as u8) {
-                    Some(sub) => {
-                        *val << I::unitfrom(sub as u128)
-                    }
+                    Some(sub) => *val << I::unitfrom(sub as u128),
                     None => {
-                        *val >> I::unitfrom(((bpos as i128) - ((ref_size * enumueration as u8) as i128)).wrapping_neg() as u128)
+                        *val >> I::unitfrom(
+                            ((bpos as i128) - ((ref_size * enumueration as u8) as i128))
+                                .wrapping_neg() as u128,
+                        )
                     }
                 };
                 ret ^= shifted;
             }
             match ref_size.checked_sub(prc_size) {
-                Some(sub) => {
-                    Ok(U::unitfrom((ret >> I::unitfrom(sub as u128)).into_u128()))
-                }
-                None => {
-                    Ok(U::unitfrom(ret.into_u128()))
-                }
+                Some(sub) => Ok(U::unitfrom((ret >> I::unitfrom(sub as u128)).into_u128())),
+                None => Ok(U::unitfrom(ret.into_u128())),
             }
         } else {
             match self.get_ref().slice.get(cpos) {
@@ -214,14 +210,14 @@ impl<'a, I: Unit> Seek for BitCursor<'a, I> {
         // size will always be a byte since we can only do this for Cursor with type &[u8]
         let (base_pos, offset) = match pos {
             SeekFrom::Start(v) => {
-                let unitsize = UnitArr::<I>::unit_size() as u64;
+                let unitsize = I::SIZE as u64;
                 self.bit_pos = (v % unitsize) as u8;
                 let seek_to = ((unitsize - self.bit_pos as u64) + v) / unitsize - 1;
                 self.set_cur_pos(seek_to);
                 return Ok(seek_to);
             }
             SeekFrom::Current(v) => {
-                let unitsize = UnitArr::<I>::unit_size() as i128;
+                let unitsize = I::SIZE as i128;
                 let bits = (self.bit_position() as i128)
                     + (self.cur_position() as i128 * unitsize)
                     + v as i128;
@@ -230,7 +226,7 @@ impl<'a, I: Unit> Seek for BitCursor<'a, I> {
                 (self.cur_position(), seek_to - self.cur_position() as i128)
             }
             SeekFrom::End(v) => {
-                let unitsize = UnitArr::<I>::unit_size() as i128;
+                let unitsize = I::SIZE as i128;
                 let bits = (self.bit_position() as i128)
                     + (self.get_ref().len() as i128 * unitsize)
                     + v as i128;
