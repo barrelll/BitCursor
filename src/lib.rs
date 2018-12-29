@@ -173,12 +173,13 @@ impl<'a, I: Unit> BitCursor<'a, I> {
         if overlap > 0 && ((bpos + prc_size) % 8 != 0) {
             match self.get_ref().slice.get(cpos) {
                 Some(first) => {
-                    let mut val = *first << I::unitfrom((match bpos.checked_sub(prc_size) {
-                        Some(sub) => sub,
-                        None => {
-                            ((bpos as i32) - (prc_size as i32)).wrapping_neg() as u8
-                        }
-                    }) as u128);
+                    let mut val = *first
+                        << I::unitfrom(
+                            (match bpos.checked_sub(prc_size) {
+                                Some(sub) => sub,
+                                None => ((bpos as i32) - (prc_size as i32)).wrapping_neg() as u8,
+                            }) as u128,
+                        );
                     match self.get_ref().slice.get(cpos + 1 + overlap) {
                         Some(last) => {
                             let mut start_size = (ref_size - prc_size) as u128;
