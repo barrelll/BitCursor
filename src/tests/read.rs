@@ -51,4 +51,13 @@ mod u8 {
         let r = bcurs.read_unit::<u8>().unwrap();
         assert_eq!(0b10010110 as u8, r);
     }
+
+    #[test]
+    fn read_u8_from_u64s() {
+        let data: [u64; 3] = [0b1001001000100101100010000110101110010010001001011000100001101010, 0b1001001000100101100010000110101010010010001001011000100001101010, 0b1001001000100101100010000110101010010010001001011000100001101010];
+        let mut bcurs = BitCursor::new(&data[..]);
+        bcurs.set_bit_pos(3*32+10);
+        let r = bcurs.read_unit::<u8>().unwrap();
+        assert_eq!(0b10010110 as u8, r);
+    }
 }
