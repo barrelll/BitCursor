@@ -11,12 +11,30 @@ mod u8 {
     }
 
     #[test]
+    #[should_panic]
+    fn read_u8_from_u8s_out_of_range() {
+        let data: [u8; 3] = [0b01101010, 0b11110001, 0b01110100];
+        let mut bcurs = BitCursor::new(&data[..]);
+        let _ = bcurs.seek(SeekFrom::Start(17));
+        let _ = bcurs.read_unit::<u8>().unwrap();
+    }
+
+    #[test]
     fn read_u8_from_u16s() {
         let data: [u16; 3] = [0b1000100001101010, 0b1001101011010001, 0b1000000101110100];
         let mut bcurs = BitCursor::new(&data[..]);
         let _ = bcurs.seek(SeekFrom::Start(10));
         let r = bcurs.read_unit::<u8>().unwrap();
         assert_eq!(0b10101010 as u8, r);
+    }
+
+    #[test]
+    #[should_panic]
+    fn read_u8_from_u16s_out_of_range() {
+        let data: [u16; 3] = [0b1000100001101010, 0b1001101011010001, 0b1000000101110100];
+        let mut bcurs = BitCursor::new(&data[..]);
+        let _ = bcurs.seek(SeekFrom::Start(41));
+        let _ = bcurs.read_unit::<u8>().unwrap();
     }
 
     #[test]
@@ -33,6 +51,19 @@ mod u8 {
     }
 
     #[test]
+    #[should_panic]
+    fn read_u8_from_u32s_out_of_range() {
+        let data: [u32; 3] = [
+            0b10010010001001011000100001101010,
+            0b10010010001001011000100001101010,
+            0b10010010001001011000100001101010,
+        ];
+        let mut bcurs = BitCursor::new(&data[..]);
+        let _ = bcurs.seek(SeekFrom::Start(89));
+        let _ = bcurs.read_unit::<u8>().unwrap();
+    }
+
+    #[test]
     fn read_u8_from_u64s() {
         let data: [u64; 3] = [
             0b1001001000100101100010000110101110010010001001011000100001101010,
@@ -43,6 +74,19 @@ mod u8 {
         let _ = bcurs.seek(SeekFrom::Start(3 * 32 + 10));
         let r = bcurs.read_unit::<u8>().unwrap();
         assert_eq!(0b10010110 as u8, r);
+    }
+
+    #[test]
+    #[should_panic]
+    fn read_u8_from_u64s_out_of_range() {
+        let data: [u64; 3] = [
+            0b1001001000100101100010000110101110010010001001011000100001101010,
+            0b1001001000100101100010000110101010010010001001011000100001101010,
+            0b1001001000100101100010000110101010010010001001011000100001101010,
+        ];
+        let mut bcurs = BitCursor::new(&data[..]);
+        let _ = bcurs.seek(SeekFrom::Start(185));
+        let _ = bcurs.read_unit::<u8>().unwrap();
     }
 
     #[test]
