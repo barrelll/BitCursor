@@ -1,30 +1,6 @@
 mod u8 {
     use BitCursor;
-    // test algo
-    //    #[test]
-    //    fn s() {
-    //        let first: u16 = 0b0010110000000001;
-    //        let last: u16 = 0b0100101111000001;
-    //        let list = [first, last];
-    //        let bpos: usize = 10;
-    //        let ref_size = 16;
-    //        let mut ret: u16 = 0;
-    //        println!("firs {:#018b}\nlast {:#018b}", first, last);
-    //        for (i, val) in list.iter().enumerate() {
-    //            let shifted = match bpos.checked_sub(ref_size * i) {
-    //                Some(sub) => {
-    //                    *val << sub
-    //                }
-    //                None => {
-    //                    *val >> ((bpos as i128) - ((ref_size * i) as i128)).wrapping_neg()
-    //                }
-    //            } as u16;
-    //            ret ^= shifted;
-    //            println!("\tval! {:#010b}", (ret >> 8) as u8);
-    //        }
-    //        //how much to shift over by? before cutting into U type (u8 u16 or w/e)
-    //        println!("{:b}", ret);
-    //    }
+
     #[test]
     fn read_u8_from_u8s() {
         let data: [u8; 3] = [0b01101010, 0b11110001, 0b01110100];
