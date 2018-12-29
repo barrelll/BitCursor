@@ -164,26 +164,32 @@ impl<'a, I: Unit> BitCursor<'a, I> {
         self.cursor.set_position(new);
     }
 
-    pub fn read_8(&mut self) -> Result<u8> {
+    pub fn read<U: Unit>(&mut self) -> Result<U> {
         let cpos = self.cur_position() as usize;
         let bpos = self.bit_position();
         let ref_size = I::SIZE;
-        let prc_size = u8::SIZE;
+        let prc_size = U::SIZE;
         let overlap = ((bpos + prc_size) / ref_size) as usize;
         if overlap > 0 && ((bpos + prc_size) % 8 != 0) {
             match self.get_ref().slice.get(cpos) {
                 Some(first) => {
-                    let mut val = *first << I::unitfrom((bpos - prc_size) as u128);
+                    let mut val = *first << I::unitfrom((match bpos.checked_sub(prc_size) {
+                        Some(sub) => sub,
+                        None => {
+                            ((bpos as i32) - (prc_size as i32)).wrapping_neg() as u8
+                        }
+                    }) as u128);
                     match self.get_ref().slice.get(cpos + 1 + overlap) {
                         Some(last) => {
                             let mut start_size = (ref_size - prc_size) as u128;
-                            for v in &self.get_ref().slice[cpos..cpos + overlap] {
+                            for v in &self.get_ref().slice[cpos + 1..cpos + overlap] {
                                 val |= *v >> I::unitfrom(start_size);
                                 start_size -= prc_size as u128;
                             }
+                            println!("slice! {:?}", &self.get_ref().slice[cpos..cpos + overlap]);
                             val |= *last >> I::unitfrom((ref_size - (bpos - prc_size)) as u128);
-                            let _ = self.seek(SeekFrom::Current(8));
-                            Ok(val.into_u8())
+                            let _ = self.seek(SeekFrom::Current(prc_size as i64));
+                            Ok(U::unitfrom(val.into_u128()))
                         }
                         None => return Err(Error::new(ErrorKind::InvalidData, "Not enough data")),
                     }
@@ -199,8 +205,8 @@ impl<'a, I: Unit> BitCursor<'a, I> {
             match self.get_ref().slice.get(cpos) {
                 Some(v) => {
                     let val = *v >> I::unitfrom((ref_size - prc_size - bpos) as u128);
-                    let _ = self.seek(SeekFrom::Current(8));
-                    Ok(val.into_u8())
+                    let _ = self.seek(SeekFrom::Current(prc_size as i64));
+                    Ok(U::unitfrom(val.into_u128()))
                 }
                 None => {
                     return Err(Error::new(
