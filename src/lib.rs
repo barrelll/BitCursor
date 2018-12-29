@@ -170,25 +170,43 @@ impl<'a, I: Unit> BitCursor<'a, I> {
         let ref_size = I::SIZE;
         let prc_size = U::SIZE;
         let overlap = ((bpos + prc_size) / ref_size) as usize;
+        println!("overlap {:?}", overlap);
         if overlap > 0 && ((bpos + prc_size) % 8 != 0) {
             match self.get_ref().slice.get(cpos) {
                 Some(first) => {
-                    let mut val = *first
-                        << I::unitfrom(
-                            (match bpos.checked_sub(prc_size) {
-                                Some(sub) => sub,
-                                None => ((bpos as i32) - (prc_size as i32)).wrapping_neg() as u8,
-                            }) as u128,
-                        );
-                    match self.get_ref().slice.get(cpos + 1 + overlap) {
+                    let mut val = match bpos.checked_sub(prc_size) {
+                        Some(sub) => {
+                            *first << I::unitfrom(bpos as u128)
+                        },
+                        None => {
+//                            let sub = ((bpos as i32) - (prc_size as i32)).wrapping_neg() as u128;
+                            println!("first branch 2 {:?} {:?}", bpos, prc_size);
+//                            println!("first branch 2 {:b} {:?}", first, sub);
+                            *first << I::unitfrom(bpos as u128)
+                        },
+                    };
+                    println!("first val {:b}", val);
+                    match self.get_ref().slice.get(cpos + overlap) {
                         Some(last) => {
                             let mut start_size = (ref_size - prc_size) as u128;
                             for v in &self.get_ref().slice[cpos + 1..cpos + overlap] {
                                 val |= *v >> I::unitfrom(start_size);
                                 start_size -= prc_size as u128;
                             }
-                            println!("slice! {:?}", &self.get_ref().slice[cpos..cpos + overlap]);
-                            val |= *last >> I::unitfrom((ref_size - (bpos - prc_size)) as u128);
+//                            val |= *last >> I::unitfrom((ref_size - (bpos - prc_size)) as u128);
+                            val |= match bpos.checked_sub(prc_size) {
+                                Some(sub) => {
+                                    let rsize = ref_size as u128;
+                                    println!("last 1 {:?} {:?}", rsize, sub);
+                                    *last >> I::unitfrom(rsize - sub as u128)
+                                },
+                                None => {
+                                    let rsize = ref_size as u128;
+                                    let sub = ((bpos as i32) - (prc_size as i32)).wrapping_neg() as u128;
+                                    println!("last 2 {:?} {:?}", rsize, sub);
+                                    *last >> I::unitfrom(rsize - sub)
+                                }
+                            };
                             let _ = self.seek(SeekFrom::Current(prc_size as i64));
                             Ok(U::unitfrom(val.into_u128()))
                         }
