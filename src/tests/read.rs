@@ -1,6 +1,5 @@
 mod u8 {
     use BitCursor;
-
     #[test]
     fn read_u8_from_u8s() {
         let data: [u8; 3] = [0b01101010, 0b11110001, 0b01110100];
