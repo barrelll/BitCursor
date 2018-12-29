@@ -1,6 +1,6 @@
 mod u8 {
-    use BitCursor;
     use std::io::{Seek, SeekFrom};
+    use BitCursor;
     #[test]
     fn read_u8_from_u8s() {
         let data: [u8; 3] = [0b01101010, 0b11110001, 0b01110100];
@@ -57,7 +57,6 @@ mod u8 {
         let r = bcurs.read_unit::<u8>().unwrap();
         assert_eq!(0b11010101 as u8, r);
     }
-
 
     #[test]
     #[should_panic]
