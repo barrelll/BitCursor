@@ -207,7 +207,7 @@ impl<'a, I: Unit> BitCursor<'a, I> {
                     .iter()
                     .enumerate()
                     {
-                        let val = U::unitfrom(val.into_u128()) << U::unitfrom(ref_size as u128);
+                        let val = U::unitfrom(val.into_u128()) << U::unitfrom((prc_size - ref_size) as u128);
                         let shifted = match bpos.checked_sub(ref_size * enumueration as u8) {
                             Some(sub) => {
                                 val << U::unitfrom(sub as u128)
