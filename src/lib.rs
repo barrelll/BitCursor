@@ -183,18 +183,18 @@ impl<'a, I: Unit> BitCursor<'a, I> {
                     .slice(cpos, cpos + overlap + 1)?
                     .iter()
                     .enumerate()
-                    {
-                        let shifted = match bpos.checked_sub(ref_size * enumueration as u8) {
-                            Some(sub) => *val << I::unitfrom(sub as u128),
-                            None => {
-                                *val >> I::unitfrom(
-                                    ((bpos as i128) - ((ref_size * enumueration as u8) as i128))
-                                        .wrapping_neg() as u128,
-                                )
-                            }
-                        };
-                        ret |= shifted;
-                    }
+                {
+                    let shifted = match bpos.checked_sub(ref_size * enumueration as u8) {
+                        Some(sub) => *val << I::unitfrom(sub as u128),
+                        None => {
+                            *val >> I::unitfrom(
+                                ((bpos as i128) - ((ref_size * enumueration as u8) as i128))
+                                    .wrapping_neg() as u128,
+                            )
+                        }
+                    };
+                    ret |= shifted;
+                }
                 match ref_size.checked_sub(prc_size) {
                     Some(sub) => Ok(U::unitfrom((ret >> I::unitfrom(sub as u128)).into_u128())),
                     None => Ok(U::unitfrom(ret.into_u128())),
@@ -206,21 +206,20 @@ impl<'a, I: Unit> BitCursor<'a, I> {
                     .slice(cpos, cpos + overlap + 1)?
                     .iter()
                     .enumerate()
-                    {
-                        let val = U::unitfrom(val.into_u128()) << U::unitfrom((prc_size - ref_size) as u128);
-                        let shifted = match bpos.checked_sub(ref_size * enumueration as u8) {
-                            Some(sub) => {
-                                val << U::unitfrom(sub as u128)
-                            },
-                            None => {
-                                val >> U::unitfrom(
-                                    ((bpos as i128) - ((ref_size * enumueration as u8) as i128))
-                                        .wrapping_neg() as u128,
-                                )
-                            }
-                        };
-                        ret |= U::unitfrom(shifted.into_u128());
-                    }
+                {
+                    let val =
+                        U::unitfrom(val.into_u128()) << U::unitfrom((prc_size - ref_size) as u128);
+                    let shifted = match bpos.checked_sub(ref_size * enumueration as u8) {
+                        Some(sub) => val << U::unitfrom(sub as u128),
+                        None => {
+                            val >> U::unitfrom(
+                                ((bpos as i128) - ((ref_size * enumueration as u8) as i128))
+                                    .wrapping_neg() as u128,
+                            )
+                        }
+                    };
+                    ret |= U::unitfrom(shifted.into_u128());
+                }
                 match ref_size.checked_sub(prc_size) {
                     Some(sub) => Ok(ret >> U::unitfrom(sub as u128)),
                     None => Ok(ret),
