@@ -176,27 +176,55 @@ impl<'a, I: Unit> BitCursor<'a, I> {
         let prc_size = U::SIZE;
         let overlap = ((bpos + prc_size) / ref_size) as usize;
         if overlap > 0 && ((bpos + prc_size) % 8 != 0) {
-            let mut ret = I::unitfrom(0);
-            for (enumueration, val) in self
-                .get_ref()
-                .slice(cpos, cpos + overlap + 1)?
-                .iter()
-                .enumerate()
-            {
-                let shifted = match bpos.checked_sub(ref_size * enumueration as u8) {
-                    Some(sub) => *val << I::unitfrom(sub as u128),
-                    None => {
-                        *val >> I::unitfrom(
-                            ((bpos as i128) - ((ref_size * enumueration as u8) as i128))
-                                .wrapping_neg() as u128,
-                        )
+            if ref_size >= prc_size {
+                let mut ret = I::unitfrom(0);
+                for (enumueration, val) in self
+                    .get_ref()
+                    .slice(cpos, cpos + overlap + 1)?
+                    .iter()
+                    .enumerate()
+                    {
+                        let shifted = match bpos.checked_sub(ref_size * enumueration as u8) {
+                            Some(sub) => *val << I::unitfrom(sub as u128),
+                            None => {
+                                *val >> I::unitfrom(
+                                    ((bpos as i128) - ((ref_size * enumueration as u8) as i128))
+                                        .wrapping_neg() as u128,
+                                )
+                            }
+                        };
+                        ret |= shifted;
                     }
-                };
-                ret ^= shifted;
-            }
-            match ref_size.checked_sub(prc_size) {
-                Some(sub) => Ok(U::unitfrom((ret >> I::unitfrom(sub as u128)).into_u128())),
-                None => Ok(U::unitfrom(ret.into_u128())),
+                match ref_size.checked_sub(prc_size) {
+                    Some(sub) => Ok(U::unitfrom((ret >> I::unitfrom(sub as u128)).into_u128())),
+                    None => Ok(U::unitfrom(ret.into_u128())),
+                }
+            } else {
+                let mut ret = U::unitfrom(0);
+                for (enumueration, val) in self
+                    .get_ref()
+                    .slice(cpos, cpos + overlap + 1)?
+                    .iter()
+                    .enumerate()
+                    {
+                        let val = U::unitfrom(val.into_u128()) << U::unitfrom(ref_size as u128);
+                        let shifted = match bpos.checked_sub(ref_size * enumueration as u8) {
+                            Some(sub) => {
+                                val << U::unitfrom(sub as u128)
+                            },
+                            None => {
+                                val >> U::unitfrom(
+                                    ((bpos as i128) - ((ref_size * enumueration as u8) as i128))
+                                        .wrapping_neg() as u128,
+                                )
+                            }
+                        };
+                        ret |= U::unitfrom(shifted.into_u128());
+                    }
+                match ref_size.checked_sub(prc_size) {
+                    Some(sub) => Ok(ret >> U::unitfrom(sub as u128)),
+                    None => Ok(ret),
+                }
             }
         } else {
             match self.get_ref().slice.get(cpos) {
