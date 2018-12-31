@@ -381,15 +381,10 @@ impl<'a, T: Unit> Seek for BitCursor<T> {
             }
             SeekFrom::End(v) => {
                 let unitsize = T::SIZE as i128;
-                let bits = (self.bit_position() as i128)
-                    + (1 as i128 * unitsize)
-                    + v as i128;
+                let bits = (self.bit_position() as i128) + (1 as i128 * unitsize) + v as i128;
                 self.bit_pos = (bits % unitsize) as u8;
                 let seek_to = bits / unitsize;
-                (
-                    1 as u64,
-                    seek_to - 1 as i128,
-                )
+                (1 as u64, seek_to - 1 as i128)
             }
         };
         let new_pos = if offset >= 0 {
