@@ -371,7 +371,7 @@ mod i8 {
     use std::io::{Seek, SeekFrom};
     use {BitCursor, ReadBits};
     #[test]
-    fn read_i8_from_i8s() {
+    fn read_i8_from_u8s() {
         let data: [u8; 3] = [0b01101010, 0b11110001, 0b01110100];
         let mut bcurs = BitCursor::new(&data[..]);
         let _ = bcurs.seek(SeekFrom::Start(10));
@@ -381,8 +381,8 @@ mod i8 {
 
     #[test]
     #[should_panic]
-    fn read_i8_from_i8s_out_of_range() {
-        let data: [i8; 3] = [0b01101010, 0b11110001, 0b01110100];
+    fn read_i8_from_u8s_out_of_range() {
+        let data: [u8; 3] = [0b01101010, 0b11110001, 0b01110100];
         let mut bcurs = BitCursor::new(&data[..]);
         let _ = bcurs.seek(SeekFrom::Start(17));
         let _ = bcurs.read_bits::<i8>().unwrap();
