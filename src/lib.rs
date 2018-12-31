@@ -2,7 +2,7 @@ mod tests;
 
 use std::cmp::min;
 use std::fmt::{Binary, Debug, Display};
-use std::io::{BufRead, Cursor, Error, ErrorKind, Read, Result, Seek, SeekFrom};
+use std::io::{BufRead, Cursor, Error, ErrorKind, Read, Result, Seek, SeekFrom, Write};
 use std::ops::{
     Add, AddAssign, BitAnd, BitAndAssign, BitOr, BitOrAssign, BitXor, BitXorAssign, Div, DivAssign,
     Mul, MulAssign, Rem, RemAssign, Shl, ShlAssign, Shr, ShrAssign, Sub, SubAssign,
@@ -639,3 +639,24 @@ impl_bufread!(
     &'a Vec<u8>,
     &'a mut Vec<u8>
 );
+
+impl<'a, T: Unit> Write for BitCursor<&'a mut [T]> {
+    fn write(&mut self, buf: &[u8]) -> Result<usize> {
+        let cpos = self.cur_position() as usize;
+        let bpos = self.bit_position();
+        let inner = self.get_mut();
+        for (enumeration, val) in buf.iter().enumerate() {
+            if cpos + enumeration > inner.len() {
+                return Ok(enumeration)
+            }
+            let val = (T::unitfrom(*val as u128)
+                << T::unitfrom((T::SIZE - (8 * enumeration) as u8) as u128))
+                >> T::unitfrom(bpos as u128);
+            inner[cpos + enumeration] |= val;
+        }
+        Ok(0)
+    }
+    fn flush(&mut self) -> Result<()> {
+        Ok(())
+    }
+}
