@@ -1,7 +1,8 @@
 mod tests;
 
+use std::cmp::min;
 use std::fmt::{Binary, Debug, Display};
-use std::io::{Cursor, Error, ErrorKind, Read, Result, Seek, SeekFrom};
+use std::io::{BufRead, Cursor, Error, ErrorKind, Read, Result, Seek, SeekFrom};
 use std::ops::{
     Add, AddAssign, BitAnd, BitAndAssign, BitOr, BitOrAssign, BitXor, BitXorAssign, Div, DivAssign,
     Mul, MulAssign, Rem, RemAssign, Shl, ShlAssign, Shr, ShrAssign, Sub, SubAssign,
@@ -370,6 +371,12 @@ impl<'a, T: Unit> ReadBits<T> for BitCursor<$x> {
 }
 impl_readbits!(&'a [T], &'a mut [T], Vec<T>, &'a Vec<T>, &'a mut Vec<T>);
 
+impl<'a, T: Unit> ReadBits<T> for BitCursor<T> {
+    fn read_bits<U: Unit>(&mut self) -> Result<U> {
+        return Err(Error::new(ErrorKind::Other, "Not implemented yet"));
+    }
+}
+
 pub trait ForceReadBits<T> {
     fn force_read_bits<U: Unit>(&mut self) -> Result<U>;
 }
@@ -462,6 +469,12 @@ impl<'a, T: Unit> ForceReadBits<T> for BitCursor<$x> {
     };
 }
 impl_forcereadbits!(&'a [T], &'a mut [T], Vec<T>, &'a Vec<T>, &'a mut Vec<T>);
+
+impl<'a, T: Unit> ForceReadBits<T> for BitCursor<T> {
+    fn force_read_bits<U: Unit>(&mut self) -> Result<U> {
+        return Err(Error::new(ErrorKind::Other, "Not implemented yet"));
+    }
+}
 
 macro_rules! impl_seek {
     ( $( $x:ty),* ) => {
@@ -575,12 +588,10 @@ impl<'a, T: Unit> Read for BitCursor<$x> {
         for i in 0..buf.len() {
             buf[i] = match self.read_bits::<u8>() {
                 Ok(val) => val,
-                Err(_) => {
-                    match self.force_read_bits::<u8>() {
-                        Ok(val) =>  val,
-                        Err(_) => return Ok(i),
-                    }
-                }
+                Err(_) => match self.force_read_bits::<u8>() {
+                    Ok(val) => val,
+                    Err(_) => return Ok(i),
+                },
             }
         }
         Ok(buf.len())
@@ -591,18 +602,40 @@ impl<'a, T: Unit> Read for BitCursor<$x> {
 }
 impl_read!(&'a [T], &'a mut [T], Vec<T>, &'a Vec<T>, &'a mut Vec<T>);
 
-//impl<'a, T: Unit> Read for BitCursor<T> {
-//    fn read(&mut self, buf: &mut [u8]) -> Result<usize> {
-//        for i in 0..buf.len() {
-//            buf[i] = match self.read_bits::<u8>() {
-//                Ok(val) => {
-//                    val
-//                },
-//                Err(_) => {
-//                    return Ok(i)
-//                }
-//            }
-//        }
-//        Ok(buf.len())
-//    }
-//}
+impl<'a, T: Unit> Read for BitCursor<T> {
+    fn read(&mut self, buf: &mut [u8]) -> Result<usize> {
+        for i in 0..buf.len() {
+            buf[i] = match self.read_bits::<u8>() {
+                Ok(val) => val,
+                Err(_) => match self.force_read_bits::<u8>() {
+                    Ok(val) => val,
+                    Err(_) => return Ok(i),
+                },
+            }
+        }
+        Ok(buf.len())
+    }
+}
+
+macro_rules! impl_bufread {
+    ( $( $x:ty),* ) => {
+        $(
+impl<'a> BufRead for BitCursor<$x>  {
+    fn fill_buf(&mut self) -> Result<&[u8]> {
+        let amt = min(self.cur_position(), self.get_ref().len() as u64);
+        Ok(&self.get_ref()[(amt as usize)..])
+    }
+    fn consume(&mut self, amt: usize) {
+        self.set_cur_pos(amt as u64);
+    }
+}
+        )*
+    };
+}
+impl_bufread!(
+    &'a [u8],
+    &'a mut [u8],
+    Vec<u8>,
+    &'a Vec<u8>,
+    &'a mut Vec<u8>
+);
