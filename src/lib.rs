@@ -406,7 +406,17 @@ impl<'a, T: Unit> Seek for BitCursor<T> {
 }
 
 impl<'a, T: Unit> Read for BitCursor<&'a [T]> {
-    fn read(&mut self, _buf: &mut [u8]) -> Result<usize> {
-        Ok(0)
+    fn read(&mut self, buf: &mut [u8]) -> Result<usize> {
+        for i in 0..buf.len() {
+            buf[i] = match self.read_bits::<u8>() {
+                Ok(val) => {
+                    val
+                },
+                Err(_) => {
+                    return Ok(i)
+                }
+            }
+        }
+        Ok(buf.len())
     }
 }
