@@ -1,46 +1,11 @@
 mod tests;
 
-//use std::convert::{From, Into};
 use std::fmt::{Binary, Debug, Display};
 use std::io::{Cursor, Error, ErrorKind, Read, Result, Seek, SeekFrom};
 use std::ops::{
     Add, AddAssign, BitAnd, BitAndAssign, BitOr, BitOrAssign, BitXor, BitXorAssign, Div, DivAssign,
     Mul, MulAssign, Rem, RemAssign, Shl, ShlAssign, Shr, ShrAssign, Sub, SubAssign,
 };
-
-macro_rules! impl_unit {
-    ( $( $x:ident, $y:expr ),* ) => {
-        $(
-            impl Unit for $x {
-                const SIZE: u8 = $y;
-
-                fn unitfrom(val: u128) -> $x {
-                    val as $x
-                }
-                fn max_value() -> $x {
-                    $x::max_value()
-                }
-                fn checked_shr(self, rhs: u32) -> Option<Self> {
-                    self.checked_shr(rhs)
-                }
-                fn checked_shl(self, rhs: u32) ->  Option<Self> {
-                    self.checked_shl(rhs)
-                }
-                fn into_u8(self) -> u8 { self as u8 }
-                fn into_u16(self) -> u16 { self as u16 }
-                fn into_u32(self) -> u32 { self as u32 }
-                fn into_u64(self) -> u64 { self as u64 }
-                fn into_u128(self) -> u128 { self as u128 }
-
-                fn into_i8(self) -> i8 { self as i8 }
-                fn into_i16(self) -> i16 { self as i16 }
-                fn into_i32(self) -> i32 { self as i32 }
-                fn into_i64(self) -> i64 { self as i64 }
-                fn into_i128(self) -> i128 { self as i128 }
-            }
-        )*
-    };
-}
 
 pub trait Unit:
     Add<Output = Self>
@@ -89,6 +54,39 @@ pub trait Unit:
     fn into_i128(self) -> i128;
 }
 
+macro_rules! impl_unit {
+    ( $( $x:ident, $y:expr ),* ) => {
+        $(
+            impl Unit for $x {
+                const SIZE: u8 = $y;
+
+                fn unitfrom(val: u128) -> $x {
+                    val as $x
+                }
+                fn max_value() -> $x {
+                    $x::max_value()
+                }
+                fn checked_shr(self, rhs: u32) -> Option<Self> {
+                    self.checked_shr(rhs)
+                }
+                fn checked_shl(self, rhs: u32) ->  Option<Self> {
+                    self.checked_shl(rhs)
+                }
+                fn into_u8(self) -> u8 { self as u8 }
+                fn into_u16(self) -> u16 { self as u16 }
+                fn into_u32(self) -> u32 { self as u32 }
+                fn into_u64(self) -> u64 { self as u64 }
+                fn into_u128(self) -> u128 { self as u128 }
+
+                fn into_i8(self) -> i8 { self as i8 }
+                fn into_i16(self) -> i16 { self as i16 }
+                fn into_i32(self) -> i32 { self as i32 }
+                fn into_i64(self) -> i64 { self as i64 }
+                fn into_i128(self) -> i128 { self as i128 }
+            }
+        )*
+    };
+}
 impl_unit!(
     u8, 8, u16, 16, u32, 32, u64, 64, u128, 128, i8, 8, i16, 16, i32, 32, i64, 64, i128, 128
 );
