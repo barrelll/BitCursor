@@ -174,6 +174,60 @@ impl<'a, I> SafeSlice<I> for &'a mut Vec<I> {
     }
 }
 
+trait ForceSlice<I> {
+    fn force_slice(&self, x: usize, y: usize) -> &[I];
+}
+
+impl<'a, I> ForceSlice<I> for &'a [I] {
+    fn force_slice(&self, x: usize, y: usize) -> &[I] {
+        if y > self.len() {
+            &self[x..]
+        } else {
+            &self[x..y]
+        }
+    }
+}
+
+impl<'a, I> ForceSlice<I> for &'a mut [I] {
+    fn force_slice(&self, x: usize, y: usize) -> &[I] {
+        if y > self.len() {
+            &self[x..]
+        } else {
+            &self[x..y]
+        }
+    }
+}
+
+impl<'a, I> ForceSlice<I> for Vec<I> {
+    fn force_slice(&self, x: usize, y: usize) -> &[I] {
+        if y > self.len() {
+            &self[x..]
+        } else {
+            &self[x..y]
+        }
+    }
+}
+
+impl<'a, I> ForceSlice<I> for &'a Vec<I> {
+    fn force_slice(&self, x: usize, y: usize) -> &[I] {
+        if y > self.len() {
+            &self[x..]
+        } else {
+            &self[x..y]
+        }
+    }
+}
+
+impl<'a, I> ForceSlice<I> for &'a mut Vec<I> {
+    fn force_slice(&self, x: usize, y: usize) -> &[I] {
+        if y > self.len() {
+            &self[x..]
+        } else {
+            &self[x..y]
+        }
+    }
+}
+
 #[derive(Debug, Clone)]
 pub struct BitCursor<T> {
     bit_pos: u8,
@@ -217,7 +271,7 @@ impl<T> BitCursor<T> {
     }
 }
 
-trait ReadBits<T> {
+pub trait ReadBits<T> {
     fn read_bits<U: Unit>(&mut self) -> Result<U>;
 }
 
@@ -300,6 +354,90 @@ impl<'a, T: Unit> ReadBits<T> for BitCursor<$x> {
     };
 }
 impl_readbits!(&'a [T], &'a mut [T], Vec<T>, &'a Vec<T>, &'a mut Vec<T>);
+
+pub trait ForceReadBits<T> {
+    fn force_read_bits<U: Unit>(&mut self) -> Result<U>;
+}
+
+macro_rules! impl_forcereadbits {
+    ( $( $x:ty),* ) => {
+        $(
+impl<'a, T: Unit> ForceReadBits<T> for BitCursor<$x> {
+    fn force_read_bits<U: Unit>(&mut self) -> Result<U> {
+        let cpos = self.cur_position() as usize;
+        let bpos = self.bit_position();
+        let ref_size = T::SIZE;
+        let prc_size = U::SIZE;
+        let overlap = ((bpos + prc_size) / ref_size) as usize;
+        if overlap > 0 && ((bpos + prc_size) % 8 != 0) {
+            if ref_size >= prc_size {
+                let mut ret = T::unitfrom(0);
+                for (enumueration, val) in self
+                    .get_ref()
+                    .force_slice(cpos, cpos + overlap + 1)
+                    .iter()
+                    .enumerate()
+                {
+                    let shifted = match bpos.checked_sub(ref_size * enumueration as u8) {
+                        Some(sub) => *val << T::unitfrom(sub as u128),
+                        None => {
+                            *val >> T::unitfrom(
+                                ((bpos as i128) - ((ref_size * enumueration as u8) as i128))
+                                    .wrapping_neg() as u128,
+                            )
+                        }
+                    };
+                    ret |= shifted;
+                }
+                match ref_size.checked_sub(prc_size) {
+                    Some(sub) => Ok(U::unitfrom((ret >> T::unitfrom(sub as u128)).into_u128())),
+                    None => Ok(U::unitfrom(ret.into_u128())),
+                }
+            } else {
+                let mut ret = U::unitfrom(0);
+                for (enumueration, val) in self
+                    .get_ref()
+                    .force_slice(cpos, cpos + overlap + 1)
+                    .iter()
+                    .enumerate()
+                {
+                    let val =
+                        U::unitfrom(val.into_u128()) << U::unitfrom((prc_size - ref_size) as u128);
+                    let shifted = match bpos.checked_sub(ref_size * enumueration as u8) {
+                        Some(sub) => val << U::unitfrom(sub as u128),
+                        None => {
+                            val >> U::unitfrom(
+                                ((bpos as i128) - ((ref_size * enumueration as u8) as i128))
+                                    .wrapping_neg() as u128,
+                            )
+                        }
+                    };
+                    ret |= U::unitfrom(shifted.into_u128());
+                }
+                match ref_size.checked_sub(prc_size) {
+                    Some(sub) => Ok(ret >> U::unitfrom(sub as u128)),
+                    None => Ok(ret),
+                }
+            }
+        } else {
+            let ret = U::unitfrom((match self.get_ref().get(cpos) {
+                Some(v) => *v,
+                None => {
+                    return Err(Error::new(
+                        ErrorKind::InvalidData,
+                        "Cursor position outside of slice range",
+                    ))
+                }
+            } >> T::unitfrom((ref_size - prc_size - bpos) as u128)).into_u128());
+            let _ = self.seek(SeekFrom::Current(prc_size as i64));
+            Ok(ret)
+        }
+    }
+}
+        )*
+    };
+}
+impl_forcereadbits!(&'a [T], &'a mut [T], Vec<T>, &'a Vec<T>, &'a mut Vec<T>);
 
 macro_rules! impl_seek {
     ( $( $x:ty),* ) => {
@@ -412,11 +550,12 @@ impl<'a, T: Unit> Read for BitCursor<$x> {
     fn read(&mut self, buf: &mut [u8]) -> Result<usize> {
         for i in 0..buf.len() {
             buf[i] = match self.read_bits::<u8>() {
-                Ok(val) => {
-                    val
-                },
+                Ok(val) => val,
                 Err(_) => {
-                    return Ok(i)
+                    match self.force_read_bits::<u8>() {
+                        Ok(val) =>  val,
+                        Err(_) => return Ok(i),
+                    }
                 }
             }
         }
