@@ -411,6 +411,7 @@ mod i64 {
     fn seek_from_end_i64() {
         let data: [i64; 5] = [5, 7, 12, 3, 5];
         let mut bcurs = BitCursor::new(&data[..]);
+        println!("wat");
         let curs_pos = bcurs.seek(SeekFrom::End(-120)).unwrap();
         let bit_pos = bcurs.bit_position();
         assert_eq!(3, curs_pos);

@@ -1,12 +1,12 @@
 mod u8 {
     use std::io::{Seek, SeekFrom};
-    use BitCursor;
+    use {BitCursor, ReadBits};
     #[test]
     fn read_u8_from_u8s() {
         let data: [u8; 3] = [0b01101010, 0b11110001, 0b01110100];
         let mut bcurs = BitCursor::new(&data[..]);
         let _ = bcurs.seek(SeekFrom::Start(10));
-        let r = bcurs.read_unit::<u8>().unwrap();
+        let r = bcurs.read_bits::<u8>().unwrap();
         assert_eq!(0b11000101 as u8, r);
     }
 
@@ -16,7 +16,7 @@ mod u8 {
         let data: [u8; 3] = [0b01101010, 0b11110001, 0b01110100];
         let mut bcurs = BitCursor::new(&data[..]);
         let _ = bcurs.seek(SeekFrom::Start(17));
-        let _ = bcurs.read_unit::<u8>().unwrap();
+        let _ = bcurs.read_bits::<u8>().unwrap();
     }
 
     #[test]
@@ -24,7 +24,7 @@ mod u8 {
         let data: [u16; 3] = [0b1000100001101010, 0b1001101011010001, 0b1000000101110100];
         let mut bcurs = BitCursor::new(&data[..]);
         let _ = bcurs.seek(SeekFrom::Start(10));
-        let r = bcurs.read_unit::<u8>().unwrap();
+        let r = bcurs.read_bits::<u8>().unwrap();
         assert_eq!(0b10101010 as u8, r);
     }
 
@@ -34,7 +34,7 @@ mod u8 {
         let data: [u16; 3] = [0b1000100001101010, 0b1001101011010001, 0b1000000101110100];
         let mut bcurs = BitCursor::new(&data[..]);
         let _ = bcurs.seek(SeekFrom::Start(41));
-        let _ = bcurs.read_unit::<u8>().unwrap();
+        let _ = bcurs.read_bits::<u8>().unwrap();
     }
 
     #[test]
@@ -46,7 +46,7 @@ mod u8 {
         ];
         let mut bcurs = BitCursor::new(&data[..]);
         let _ = bcurs.seek(SeekFrom::Start(10));
-        let r = bcurs.read_unit::<u8>().unwrap();
+        let r = bcurs.read_bits::<u8>().unwrap();
         assert_eq!(0b10010110 as u8, r);
     }
 
@@ -60,7 +60,7 @@ mod u8 {
         ];
         let mut bcurs = BitCursor::new(&data[..]);
         let _ = bcurs.seek(SeekFrom::Start(89));
-        let _ = bcurs.read_unit::<u8>().unwrap();
+        let _ = bcurs.read_bits::<u8>().unwrap();
     }
 
     #[test]
@@ -72,7 +72,7 @@ mod u8 {
         ];
         let mut bcurs = BitCursor::new(&data[..]);
         let _ = bcurs.seek(SeekFrom::Start(3 * 32 + 10));
-        let r = bcurs.read_unit::<u8>().unwrap();
+        let r = bcurs.read_bits::<u8>().unwrap();
         assert_eq!(0b10010110 as u8, r);
     }
 
@@ -86,7 +86,7 @@ mod u8 {
         ];
         let mut bcurs = BitCursor::new(&data[..]);
         let _ = bcurs.seek(SeekFrom::Start(185));
-        let _ = bcurs.read_unit::<u8>().unwrap();
+        let _ = bcurs.read_bits::<u8>().unwrap();
     }
 
     #[test]
@@ -98,7 +98,7 @@ mod u8 {
         ];
         let mut bcurs = BitCursor::new(&data[..]);
         let _ = bcurs.seek(SeekFrom::Start(3 * 32 + 25));
-        let r = bcurs.read_unit::<u8>().unwrap();
+        let r = bcurs.read_bits::<u8>().unwrap();
         assert_eq!(0b11010101 as u8, r);
     }
 
@@ -112,19 +112,19 @@ mod u8 {
         ];
         let mut bcurs = BitCursor::new(&data[..]);
         let _ = bcurs.seek(SeekFrom::Start(((3 * 128) as i32 - 7) as u64));
-        let _ = bcurs.read_unit::<u8>().unwrap();
+        let _ = bcurs.read_bits::<u8>().unwrap();
     }
 }
 
 mod u16 {
     use std::io::{Seek, SeekFrom};
-    use BitCursor;
+    use {BitCursor, ReadBits};
     #[test]
     fn read_u16_from_u8s() {
         let data: [u8; 4] = [0b01101010, 0b11110001, 0b01110100, 0b10100001];
         let mut bcurs = BitCursor::new(&data[..]);
         let _ = bcurs.seek(SeekFrom::Start(10));
-        let r = bcurs.read_unit::<u16>().unwrap();
+        let r = bcurs.read_bits::<u16>().unwrap();
         assert_eq!(0b1100010111010010 as u16, r);
     }
 
@@ -134,7 +134,7 @@ mod u16 {
         let data: [u8; 4] = [0b01101010, 0b11110001, 0b01110100, 0b10100001];
         let mut bcurs = BitCursor::new(&data[..]);
         let _ = bcurs.seek(SeekFrom::Start(17));
-        let _ = bcurs.read_unit::<u16>().unwrap();
+        let _ = bcurs.read_bits::<u16>().unwrap();
     }
 
     #[test]
@@ -142,7 +142,7 @@ mod u16 {
         let data: [u16; 3] = [0b1000100001101010, 0b1001101011010001, 0b1000000101110100];
         let mut bcurs = BitCursor::new(&data[..]);
         let _ = bcurs.seek(SeekFrom::Start(10));
-        let r = bcurs.read_unit::<u16>().unwrap();
+        let r = bcurs.read_bits::<u16>().unwrap();
         assert_eq!(0b1010101001101011 as u16, r);
     }
 
@@ -152,7 +152,7 @@ mod u16 {
         let data: [u16; 3] = [0b1000100001101010, 0b1001101011010001, 0b1000000101110100];
         let mut bcurs = BitCursor::new(&data[..]);
         let _ = bcurs.seek(SeekFrom::Start(33));
-        let _ = bcurs.read_unit::<u16>().unwrap();
+        let _ = bcurs.read_bits::<u16>().unwrap();
     }
 
     #[test]
@@ -164,7 +164,7 @@ mod u16 {
         ];
         let mut bcurs = BitCursor::new(&data[..]);
         let _ = bcurs.seek(SeekFrom::Start(31));
-        let r = bcurs.read_unit::<u16>().unwrap();
+        let r = bcurs.read_bits::<u16>().unwrap();
         assert_eq!(0b0100100100010010 as u16, r);
     }
 
@@ -178,7 +178,7 @@ mod u16 {
         ];
         let mut bcurs = BitCursor::new(&data[..]);
         let _ = bcurs.seek(SeekFrom::Start(81));
-        let _ = bcurs.read_unit::<u16>().unwrap();
+        let _ = bcurs.read_bits::<u16>().unwrap();
     }
 
     #[test]
@@ -190,7 +190,7 @@ mod u16 {
         ];
         let mut bcurs = BitCursor::new(&data[..]);
         let _ = bcurs.seek(SeekFrom::Start(3 * 32 + 10));
-        let r = bcurs.read_unit::<u16>().unwrap();
+        let r = bcurs.read_bits::<u16>().unwrap();
         assert_eq!(0b1001111000100001 as u16, r);
     }
 
@@ -204,7 +204,7 @@ mod u16 {
         ];
         let mut bcurs = BitCursor::new(&data[..]);
         let _ = bcurs.seek(SeekFrom::Start(178));
-        let _ = bcurs.read_unit::<u16>().unwrap();
+        let _ = bcurs.read_bits::<u16>().unwrap();
     }
 
     #[test]
@@ -216,7 +216,7 @@ mod u16 {
         ];
         let mut bcurs = BitCursor::new(&data[..]);
         let _ = bcurs.seek(SeekFrom::Start(3 * 32 + 25));
-        let r = bcurs.read_unit::<u16>().unwrap();
+        let r = bcurs.read_bits::<u16>().unwrap();
         assert_eq!(0b1101010100100100 as u16, r);
     }
 
@@ -230,13 +230,13 @@ mod u16 {
         ];
         let mut bcurs = BitCursor::new(&data[..]);
         let _ = bcurs.seek(SeekFrom::Start(((3 * 128) as i32 - 15) as u64));
-        let _ = bcurs.read_unit::<u16>().unwrap();
+        let _ = bcurs.read_bits::<u16>().unwrap();
     }
 }
 
 mod u32 {
     use std::io::{Seek, SeekFrom};
-    use BitCursor;
+    use {BitCursor, ReadBits};
     #[test]
     fn read_u32_from_u8s() {
         let data: [u8; 6] = [
@@ -244,7 +244,7 @@ mod u32 {
         ];
         let mut bcurs = BitCursor::new(&data[..]);
         let _ = bcurs.seek(SeekFrom::Start(10));
-        let r = bcurs.read_unit::<u32>().unwrap();
+        let r = bcurs.read_bits::<u32>().unwrap();
         assert_eq!(0b11000101110100101000011110001111 as u32, r);
     }
 
@@ -256,7 +256,7 @@ mod u32 {
         ];
         let mut bcurs = BitCursor::new(&data[..]);
         let _ = bcurs.seek(SeekFrom::Start(17));
-        let _ = bcurs.read_unit::<u32>().unwrap();
+        let _ = bcurs.read_bits::<u32>().unwrap();
     }
 
     #[test]
@@ -269,7 +269,7 @@ mod u32 {
         ];
         let mut bcurs = BitCursor::new(&data[..]);
         let _ = bcurs.seek(SeekFrom::Start(15));
-        let r = bcurs.read_unit::<u32>().unwrap();
+        let r = bcurs.read_bits::<u32>().unwrap();
         assert_eq!(0b01001101011010001100000010111010 as u32, r);
     }
 
@@ -284,7 +284,7 @@ mod u32 {
         ];
         let mut bcurs = BitCursor::new(&data[..]);
         let _ = bcurs.seek(SeekFrom::Start(33));
-        let _ = bcurs.read_unit::<u32>().unwrap();
+        let _ = bcurs.read_bits::<u32>().unwrap();
     }
 
     #[test]
@@ -296,7 +296,7 @@ mod u32 {
         ];
         let mut bcurs = BitCursor::new(&data[..]);
         let _ = bcurs.seek(SeekFrom::Start(31));
-        let r = bcurs.read_unit::<u32>().unwrap();
+        let r = bcurs.read_bits::<u32>().unwrap();
         assert_eq!(0b01001001000100101100010000110101 as u32, r);
     }
 
@@ -310,7 +310,7 @@ mod u32 {
         ];
         let mut bcurs = BitCursor::new(&data[..]);
         let _ = bcurs.seek(SeekFrom::Start(65));
-        let _ = bcurs.read_unit::<u32>().unwrap();
+        let _ = bcurs.read_bits::<u32>().unwrap();
     }
 
     #[test]
@@ -322,7 +322,7 @@ mod u32 {
         ];
         let mut bcurs = BitCursor::new(&data[..]);
         let _ = bcurs.seek(SeekFrom::Start(3 * 32 + 10));
-        let r = bcurs.read_unit::<u32>().unwrap();
+        let r = bcurs.read_bits::<u32>().unwrap();
         assert_eq!(0b10011110001000011010101001001000 as u32, r);
     }
 
@@ -336,7 +336,7 @@ mod u32 {
         ];
         let mut bcurs = BitCursor::new(&data[..]);
         let _ = bcurs.seek(SeekFrom::Start(162));
-        let _ = bcurs.read_unit::<u32>().unwrap();
+        let _ = bcurs.read_bits::<u32>().unwrap();
     }
 
     #[test]
@@ -348,7 +348,7 @@ mod u32 {
         ];
         let mut bcurs = BitCursor::new(&data[..]);
         let _ = bcurs.seek(SeekFrom::Start(3 * 32 + 25));
-        let r = bcurs.read_unit::<u32>().unwrap();
+        let r = bcurs.read_bits::<u32>().unwrap();
         assert_eq!(0b11010101001001000100101100010000 as u32, r);
     }
 
@@ -362,19 +362,19 @@ mod u32 {
         ];
         let mut bcurs = BitCursor::new(&data[..]);
         let _ = bcurs.seek(SeekFrom::Start(((3 * 128) as i32 - 31) as u64));
-        let _ = bcurs.read_unit::<u32>().unwrap();
+        let _ = bcurs.read_bits::<u32>().unwrap();
     }
 }
 
 //mod i8 {
 //    use std::io::{Seek, SeekFrom};
-//    use BitCursor;
+//    use {BitCursor, ReadBits};
 //    #[test]
 //    fn read_i8_from_i8s() {
 //        let data: [u8; 3] = [0b01101010, 0b11110001, 0b01110100];
 //        let mut bcurs = BitCursor::new(&data[..]);
 //        let _ = bcurs.seek(SeekFrom::Start(10));
-//        let r = bcurs.read_unit::<i8>().unwrap();
+//        let r = bcurs.read_bits::<i8>().unwrap();
 //        assert_eq!(0b11000101 as i8, r);
 //    }
 //
@@ -384,7 +384,7 @@ mod u32 {
 //        let data: [i8; 3] = [0b01101010, 0b11110001, 0b01110100];
 //        let mut bcurs = BitCursor::new(&data[..]);
 //        let _ = bcurs.seek(SeekFrom::Start(17));
-//        let _ = bcurs.read_unit::<i8>().unwrap();
+//        let _ = bcurs.read_bits::<i8>().unwrap();
 //    }
 //
 //    #[test]
@@ -392,7 +392,7 @@ mod u32 {
 //        let data: [u16; 3] = [0b1000100001101010, 0b1001101011010001, 0b1000000101110100];
 //        let mut bcurs = BitCursor::new(&data[..]);
 //        let _ = bcurs.seek(SeekFrom::Start(10));
-//        let r = bcurs.read_unit::<i8>().unwrap();
+//        let r = bcurs.read_bits::<i8>().unwrap();
 //        assert_eq!(0b10101010 as i8, r);
 //    }
 //
@@ -402,7 +402,7 @@ mod u32 {
 //        let data: [u16; 3] = [0b1000100001101010, 0b1001101011010001, 0b1000000101110100];
 //        let mut bcurs = BitCursor::new(&data[..]);
 //        let _ = bcurs.seek(SeekFrom::Start(41));
-//        let _ = bcurs.read_unit::<i8>().unwrap();
+//        let _ = bcurs.read_bits::<i8>().unwrap();
 //    }
 //
 //    #[test]
@@ -414,7 +414,7 @@ mod u32 {
 //        ];
 //        let mut bcurs = BitCursor::new(&data[..]);
 //        let _ = bcurs.seek(SeekFrom::Start(10));
-//        let r = bcurs.read_unit::<i8>().unwrap();
+//        let r = bcurs.read_bits::<i8>().unwrap();
 //        assert_eq!(0b10010110 as i8, r);
 //    }
 //
@@ -428,7 +428,7 @@ mod u32 {
 //        ];
 //        let mut bcurs = BitCursor::new(&data[..]);
 //        let _ = bcurs.seek(SeekFrom::Start(89));
-//        let _ = bcurs.read_unit::<i8>().unwrap();
+//        let _ = bcurs.read_bits::<i8>().unwrap();
 //    }
 //
 //    #[test]
@@ -440,7 +440,7 @@ mod u32 {
 //        ];
 //        let mut bcurs = BitCursor::new(&data[..]);
 //        let _ = bcurs.seek(SeekFrom::Start(3 * 32 + 10));
-//        let r = bcurs.read_unit::<i8>().unwrap();
+//        let r = bcurs.read_bits::<i8>().unwrap();
 //        assert_eq!(0b10010110 as i8, r);
 //    }
 //
@@ -454,7 +454,7 @@ mod u32 {
 //        ];
 //        let mut bcurs = BitCursor::new(&data[..]);
 //        let _ = bcurs.seek(SeekFrom::Start(185));
-//        let _ = bcurs.read_unit::<i8>().unwrap();
+//        let _ = bcurs.read_bits::<i8>().unwrap();
 //    }
 //
 //    #[test]
@@ -466,7 +466,7 @@ mod u32 {
 //        ];
 //        let mut bcurs = BitCursor::new(&data[..]);
 //        let _ = bcurs.seek(SeekFrom::Start(3 * 32 + 25));
-//        let r = bcurs.read_unit::<i8>().unwrap();
+//        let r = bcurs.read_bits::<i8>().unwrap();
 //        assert_eq!(0b1010101 as i8, r);
 //    }
 //
@@ -480,6 +480,6 @@ mod u32 {
 //        ];
 //        let mut bcurs = BitCursor::new(&data[..]);
 //        let _ = bcurs.seek(SeekFrom::Start(((3 * 128) as i32 - 7) as u64));
-//        let _ = bcurs.read_unit::<i8>().unwrap();
+//        let _ = bcurs.read_bits::<i8>().unwrap();
 //    }
 //}

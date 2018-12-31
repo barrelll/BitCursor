@@ -1,6 +1,6 @@
 mod tests;
 
-use std::convert::{From, Into};
+//use std::convert::{From, Into};
 use std::fmt::{Binary, Debug, Display};
 use std::io::{Cursor, Error, ErrorKind, Result, Seek, SeekFrom};
 use std::ops::{
@@ -85,13 +85,12 @@ impl_unit!(
     u8, 8, u16, 16, u32, 32, u64, 64, u128, 128, i8, 8, i16, 16, i32, 32, i64, 64, i128, 128
 );
 
-#[derive(Debug, Clone, Copy)]
-pub struct UnitArr<'a, T: Unit> {
-    slice: &'a [T],
+trait SafeSlice<I> {
+    fn slice(&self, x: usize, y: usize) -> Result<&[I]>;
 }
 
-impl<'a, T: Unit> UnitArr<'a, T> {
-    pub fn slice(&self, x: usize, y: usize) -> Result<&[T]> {
+impl<'a, I> SafeSlice<I> for &'a [I] {
+    fn slice(&self, x: usize, y: usize) -> Result<&[I]> {
         if y > self.len() {
             Err(Error::new(
                 ErrorKind::Other,
@@ -102,54 +101,102 @@ impl<'a, T: Unit> UnitArr<'a, T> {
                 ),
             ))
         } else {
-            Ok(&self.slice[x..y])
+            Ok(&self[x..y])
         }
     }
+}
 
-    pub fn len(&self) -> usize {
-        self.slice.len()
+impl<'a, I> SafeSlice<I> for &'a mut [I] {
+    fn slice(&self, x: usize, y: usize) -> Result<&[I]> {
+        if y > self.len() {
+            Err(Error::new(
+                ErrorKind::Other,
+                format!(
+                    "Out of slice range! y {:?} should be less than {:?}",
+                    y,
+                    self.len()
+                ),
+            ))
+        } else {
+            Ok(&self[x..y])
+        }
     }
 }
 
-impl<'a, T: Unit> From<&'a Vec<T>> for UnitArr<'a, T> {
-    fn from(v: &'a Vec<T>) -> UnitArr<'a, T> {
-        UnitArr { slice: &v[..] }
+impl<'a, I> SafeSlice<I> for Vec<I> {
+    fn slice(&self, x: usize, y: usize) -> Result<&[I]> {
+        if y > self.len() {
+            Err(Error::new(
+                ErrorKind::Other,
+                format!(
+                    "Out of slice range! y {:?} should be less than {:?}",
+                    y,
+                    self.len()
+                ),
+            ))
+        } else {
+            Ok(&self[x..y])
+        }
     }
 }
 
-impl<'a, T: Unit> From<&'a [T]> for UnitArr<'a, T> {
-    fn from(s: &'a [T]) -> UnitArr<'a, T> {
-        UnitArr { slice: s }
+impl<'a, I> SafeSlice<I> for &'a Vec<I> {
+    fn slice(&self, x: usize, y: usize) -> Result<&[I]> {
+        if y > self.len() {
+            Err(Error::new(
+                ErrorKind::Other,
+                format!(
+                    "Out of slice range! y {:?} should be less than {:?}",
+                    y,
+                    self.len()
+                ),
+            ))
+        } else {
+            Ok(&self[x..y])
+        }
+    }
+}
+
+impl<'a, I> SafeSlice<I> for &'a mut Vec<I> {
+    fn slice(&self, x: usize, y: usize) -> Result<&[I]> {
+        if y > self.len() {
+            Err(Error::new(
+                ErrorKind::Other,
+                format!(
+                    "Out of slice range! y {:?} should be less than {:?}",
+                    y,
+                    self.len()
+                ),
+            ))
+        } else {
+            Ok(&self[x..y])
+        }
     }
 }
 
 #[derive(Debug, Clone)]
-pub struct BitCursor<'a, I: Unit> {
+pub struct BitCursor<T> {
     bit_pos: u8,
-    cursor: Cursor<UnitArr<'a, I>>,
+    cursor: Cursor<T>,
 }
 
-impl<'a, I: Unit> BitCursor<'a, I> {
-    pub fn new<T: Into<UnitArr<'a, I>>>(data: T) -> BitCursor<'a, I> {
+impl<T> BitCursor<T> {
+    pub fn new(data: T) -> BitCursor<T> {
         BitCursor {
             bit_pos: 0,
-            cursor: Cursor::new(data.into()),
+            cursor: Cursor::new(data),
         }
     }
 
-    pub fn aligned(&self) -> bool {
-        self.bit_pos == (I::SIZE - 1)
-    }
-
-    pub fn into_inner(self) -> UnitArr<'a, I> {
+    pub fn into_inner(self) -> T {
         self.cursor.into_inner()
     }
 
-    pub fn get_ref(&self) -> &UnitArr<'a, I> {
+    pub fn get_ref(&self) -> &T {
         self.cursor.get_ref()
     }
 
-    pub fn get_mut(&mut self) -> &mut UnitArr<'a, I> {
+    pub fn get_mut(&mut self) -> &mut T {
         self.cursor.get_mut()
     }
 
@@ -168,16 +215,25 @@ impl<'a, I: Unit> BitCursor<'a, I> {
     pub fn set_cur_pos(&mut self, new: u64) {
         self.cursor.set_position(new);
     }
+}
 
-    pub fn read_unit<U: Unit>(&mut self) -> Result<U> {
+trait ReadBits<T> {
+    fn read_bits<U: Unit>(&mut self) -> Result<U>;
+}
+
+macro_rules! impl_readbits {
+    ( $( $x:ty),* ) => {
+        $(
+impl<'a, T: Unit> ReadBits<T> for BitCursor<$x> {
+    fn read_bits<U: Unit>(&mut self) -> Result<U> {
         let cpos = self.cur_position() as usize;
         let bpos = self.bit_position();
-        let ref_size = I::SIZE;
+        let ref_size = T::SIZE;
         let prc_size = U::SIZE;
         let overlap = ((bpos + prc_size) / ref_size) as usize;
         if overlap > 0 && ((bpos + prc_size) % 8 != 0) {
             if ref_size >= prc_size {
-                let mut ret = I::unitfrom(0);
+                let mut ret = T::unitfrom(0);
                 for (enumueration, val) in self
                     .get_ref()
                     .slice(cpos, cpos + overlap + 1)?
@@ -185,9 +241,9 @@ impl<'a, I: Unit> BitCursor<'a, I> {
                     .enumerate()
                 {
                     let shifted = match bpos.checked_sub(ref_size * enumueration as u8) {
-                        Some(sub) => *val << I::unitfrom(sub as u128),
+                        Some(sub) => *val << T::unitfrom(sub as u128),
                         None => {
-                            *val >> I::unitfrom(
+                            *val >> T::unitfrom(
                                 ((bpos as i128) - ((ref_size * enumueration as u8) as i128))
                                     .wrapping_neg() as u128,
                             )
@@ -196,7 +252,7 @@ impl<'a, I: Unit> BitCursor<'a, I> {
                     ret |= shifted;
                 }
                 match ref_size.checked_sub(prc_size) {
-                    Some(sub) => Ok(U::unitfrom((ret >> I::unitfrom(sub as u128)).into_u128())),
+                    Some(sub) => Ok(U::unitfrom((ret >> T::unitfrom(sub as u128)).into_u128())),
                     None => Ok(U::unitfrom(ret.into_u128())),
                 }
             } else {
@@ -226,36 +282,41 @@ impl<'a, I: Unit> BitCursor<'a, I> {
                 }
             }
         } else {
-            match self.get_ref().slice.get(cpos) {
-                Some(v) => {
-                    let val = *v >> I::unitfrom((ref_size - prc_size - bpos) as u128);
-                    let _ = self.seek(SeekFrom::Current(prc_size as i64));
-                    Ok(U::unitfrom(val.into_u128()))
-                }
+            let ret = U::unitfrom((match self.get_ref().get(cpos) {
+                Some(v) => *v,
                 None => {
                     return Err(Error::new(
                         ErrorKind::InvalidData,
                         "Cursor position outside of slice range",
                     ))
                 }
-            }
+            } >> T::unitfrom((ref_size - prc_size - bpos) as u128)).into_u128());
+            let _ = self.seek(SeekFrom::Current(prc_size as i64));
+            Ok(ret)
         }
     }
 }
+        )*
+    };
+}
+impl_readbits!(&'a [T], &'a mut [T], Vec<T>, &'a Vec<T>, &'a mut Vec<T>);
 
-impl<'a, I: Unit> Seek for BitCursor<'a, I> {
+macro_rules! impl_seek {
+    ( $( $x:ty),* ) => {
+        $(
+impl<'a, T: Unit> Seek for BitCursor<$x> {
     fn seek(&mut self, pos: SeekFrom) -> Result<u64> {
         // size will always be a byte since we can only do this for Cursor with type &[u8]
         let (base_pos, offset) = match pos {
             SeekFrom::Start(v) => {
-                let unitsize = I::SIZE as u64;
+                let unitsize = T::SIZE as u64;
                 self.bit_pos = (v % unitsize) as u8;
                 let seek_to = ((unitsize - self.bit_pos as u64) + v) / unitsize - 1;
                 self.set_cur_pos(seek_to);
                 return Ok(seek_to);
             }
             SeekFrom::Current(v) => {
-                let unitsize = I::SIZE as i128;
+                let unitsize = T::SIZE as i128;
                 let bits = (self.bit_position() as i128)
                     + (self.cur_position() as i128 * unitsize)
                     + v as i128;
@@ -264,7 +325,7 @@ impl<'a, I: Unit> Seek for BitCursor<'a, I> {
                 (self.cur_position(), seek_to - self.cur_position() as i128)
             }
             SeekFrom::End(v) => {
-                let unitsize = I::SIZE as i128;
+                let unitsize = T::SIZE as i128;
                 let bits = (self.bit_position() as i128)
                     + (self.get_ref().len() as i128 * unitsize)
                     + v as i128;
@@ -273,6 +334,61 @@ impl<'a, I: Unit> Seek for BitCursor<'a, I> {
                 (
                     self.get_ref().len() as u64,
                     seek_to - self.get_ref().len() as i128,
+                )
+            }
+        };
+        let new_pos = if offset >= 0 {
+            base_pos.checked_add(offset as u64)
+        } else {
+            base_pos.checked_sub((offset.wrapping_neg()) as u64)
+        };
+        match new_pos {
+            Some(n) => {
+                self.set_cur_pos(n);
+                Ok(n)
+            }
+            None => Err(Error::new(
+                ErrorKind::InvalidInput,
+                "invalid seek to a negative or overflowing position",
+            )),
+        }
+    }
+}
+        )*
+    };
+}
+impl_seek!(&'a [T], &'a mut [T], Vec<T>, &'a Vec<T>, &'a mut Vec<T>);
+
+impl<'a, T: Unit> Seek for BitCursor<T> {
+    fn seek(&mut self, pos: SeekFrom) -> Result<u64> {
+        // size will always be a byte since we can only do this for Cursor with type &[u8]
+        let (base_pos, offset) = match pos {
+            SeekFrom::Start(v) => {
+                let unitsize = T::SIZE as u64;
+                self.bit_pos = (v % unitsize) as u8;
+                let seek_to = ((unitsize - self.bit_pos as u64) + v) / unitsize - 1;
+                self.set_cur_pos(seek_to);
+                return Ok(seek_to);
+            }
+            SeekFrom::Current(v) => {
+                let unitsize = T::SIZE as i128;
+                let bits = (self.bit_position() as i128)
+                    + (self.cur_position() as i128 * unitsize)
+                    + v as i128;
+                self.bit_pos = (bits % unitsize) as u8;
+                let seek_to = bits / unitsize;
+                (self.cur_position(), seek_to - self.cur_position() as i128)
+            }
+            SeekFrom::End(v) => {
+                let unitsize = T::SIZE as i128;
+                let bits = (self.bit_position() as i128)
+                    + (1 as i128 * unitsize)
+                    + v as i128;
+                self.bit_pos = (bits % unitsize) as u8;
+                let seek_to = bits / unitsize;
+                (
+                    1 as u64,
+                    seek_to - 1 as i128,
                 )
             }
         };

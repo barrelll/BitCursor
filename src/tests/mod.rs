@@ -1,3 +1,3 @@
 #![cfg(test)]
-pub mod read_units;
+pub mod read_bits;
 pub mod seek;
