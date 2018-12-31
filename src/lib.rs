@@ -2,7 +2,7 @@ mod tests;
 
 //use std::convert::{From, Into};
 use std::fmt::{Binary, Debug, Display};
-use std::io::{Cursor, Error, ErrorKind, Result, Seek, SeekFrom};
+use std::io::{Cursor, Error, ErrorKind, Result, Seek, SeekFrom, Read};
 use std::ops::{
     Add, AddAssign, BitAnd, BitAndAssign, BitOr, BitOrAssign, BitXor, BitXorAssign, Div, DivAssign,
     Mul, MulAssign, Rem, RemAssign, Shl, ShlAssign, Shr, ShrAssign, Sub, SubAssign,
@@ -402,5 +402,11 @@ impl<'a, T: Unit> Seek for BitCursor<T> {
                 "invalid seek to a negative or overflowing position",
             )),
         }
+    }
+}
+
+impl<'a, T: Unit> Read for BitCursor<&'a [T]> {
+    fn read(&mut self, _buf: &mut [u8]) -> Result<usize> {
+        Ok(0)
     }
 }
