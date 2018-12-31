@@ -20,6 +20,12 @@ macro_rules! impl_unit {
                 fn max_value() -> $x {
                     $x::max_value()
                 }
+                fn checked_shr(self, rhs: u32) -> Option<Self> {
+                    self.checked_shr(rhs)
+                }
+                fn checked_shl(self, rhs: u32) ->  Option<Self> {
+                    self.checked_shl(rhs)
+                }
                 fn into_u8(self) -> u8 { self as u8 }
                 fn into_u16(self) -> u16 { self as u16 }
                 fn into_u32(self) -> u32 { self as u32 }
@@ -67,6 +73,8 @@ pub trait Unit:
     const SIZE: u8;
     fn unitfrom(val: u128) -> Self;
     fn max_value() -> Self;
+    fn checked_shr(self, rhs: u32) -> Option<Self>;
+    fn checked_shl(self, rhs: u32) -> Option<Self>;
 
     fn into_u8(self) -> u8;
     fn into_u16(self) -> u16;
@@ -285,7 +293,7 @@ impl<'a, T: Unit> ReadBits<T> for BitCursor<$x> {
         let ref_size = T::SIZE;
         let prc_size = U::SIZE;
         let overlap = ((bpos + prc_size) / ref_size) as usize;
-        if overlap > 0 && ((bpos + prc_size) % 8 != 0) {
+        if overlap > 0 && ((bpos + prc_size) % 8 != 0) || prc_size > ref_size {
             if ref_size >= prc_size {
                 let mut ret = T::unitfrom(0);
                 for (enumueration, val) in self
@@ -297,10 +305,13 @@ impl<'a, T: Unit> ReadBits<T> for BitCursor<$x> {
                     let shifted = match bpos.checked_sub(ref_size * enumueration as u8) {
                         Some(sub) => *val << T::unitfrom(sub as u128),
                         None => {
-                            *val >> T::unitfrom(
+                            match val.checked_shr(
                                 ((bpos as i128) - ((ref_size * enumueration as u8) as i128))
-                                    .wrapping_neg() as u128,
-                            )
+                                    .wrapping_neg() as u32,
+                            ) {
+                                Some(v) => v,
+                                None => T::unitfrom(0),
+                            }
                         }
                     };
                     ret |= shifted;
@@ -322,10 +333,13 @@ impl<'a, T: Unit> ReadBits<T> for BitCursor<$x> {
                     let shifted = match bpos.checked_sub(ref_size * enumueration as u8) {
                         Some(sub) => val << U::unitfrom(sub as u128),
                         None => {
-                            val >> U::unitfrom(
+                            match val.checked_shr(
                                 ((bpos as i128) - ((ref_size * enumueration as u8) as i128))
-                                    .wrapping_neg() as u128,
-                            )
+                                    .wrapping_neg() as u32,
+                            ) {
+                                Some(v) => v,
+                                None => U::unitfrom(0),
+                            }
                         }
                     };
                     ret |= U::unitfrom(shifted.into_u128());
@@ -336,15 +350,18 @@ impl<'a, T: Unit> ReadBits<T> for BitCursor<$x> {
                 }
             }
         } else {
-            let ret = U::unitfrom((match self.get_ref().get(cpos) {
-                Some(v) => *v,
-                None => {
-                    return Err(Error::new(
-                        ErrorKind::InvalidData,
-                        "Cursor position outside of slice range",
-                    ))
+            let ret = U::unitfrom(
+                match self.get_ref().get(cpos) {
+                    Some(v) => *v >> T::unitfrom((ref_size - prc_size - bpos) as u128),
+                    None => {
+                        return Err(Error::new(
+                            ErrorKind::InvalidData,
+                            "Cursor position outside of slice range",
+                        ))
+                    }
                 }
-            } >> T::unitfrom((ref_size - prc_size - bpos) as u128)).into_u128());
+                .into_u128(),
+            );
             let _ = self.seek(SeekFrom::Current(prc_size as i64));
             Ok(ret)
         }
@@ -369,7 +386,7 @@ impl<'a, T: Unit> ForceReadBits<T> for BitCursor<$x> {
         let ref_size = T::SIZE;
         let prc_size = U::SIZE;
         let overlap = ((bpos + prc_size) / ref_size) as usize;
-        if overlap > 0 && ((bpos + prc_size) % 8 != 0) {
+        if overlap > 0 && ((bpos + prc_size) % 8 != 0) || prc_size > ref_size {
             if ref_size >= prc_size {
                 let mut ret = T::unitfrom(0);
                 for (enumueration, val) in self
@@ -381,10 +398,13 @@ impl<'a, T: Unit> ForceReadBits<T> for BitCursor<$x> {
                     let shifted = match bpos.checked_sub(ref_size * enumueration as u8) {
                         Some(sub) => *val << T::unitfrom(sub as u128),
                         None => {
-                            *val >> T::unitfrom(
+                            match val.checked_shr(
                                 ((bpos as i128) - ((ref_size * enumueration as u8) as i128))
-                                    .wrapping_neg() as u128,
-                            )
+                                    .wrapping_neg() as u32,
+                            ) {
+                                Some(v) => v,
+                                None => T::unitfrom(0),
+                            }
                         }
                     };
                     ret |= shifted;
@@ -406,10 +426,13 @@ impl<'a, T: Unit> ForceReadBits<T> for BitCursor<$x> {
                     let shifted = match bpos.checked_sub(ref_size * enumueration as u8) {
                         Some(sub) => val << U::unitfrom(sub as u128),
                         None => {
-                            val >> U::unitfrom(
+                            match val.checked_shr(
                                 ((bpos as i128) - ((ref_size * enumueration as u8) as i128))
-                                    .wrapping_neg() as u128,
-                            )
+                                    .wrapping_neg() as u32,
+                            ) {
+                                Some(v) => v,
+                                None => U::unitfrom(0),
+                            }
                         }
                     };
                     ret |= U::unitfrom(shifted.into_u128());
@@ -420,15 +443,18 @@ impl<'a, T: Unit> ForceReadBits<T> for BitCursor<$x> {
                 }
             }
         } else {
-            let ret = U::unitfrom((match self.get_ref().get(cpos) {
-                Some(v) => *v,
-                None => {
-                    return Err(Error::new(
-                        ErrorKind::InvalidData,
-                        "Cursor position outside of slice range",
-                    ))
+            let ret = U::unitfrom(
+                match self.get_ref().get(cpos) {
+                    Some(v) => *v >> T::unitfrom((ref_size - prc_size - bpos) as u128),
+                    None => {
+                        return Err(Error::new(
+                            ErrorKind::InvalidData,
+                            "Cursor position outside of slice range",
+                        ))
+                    }
                 }
-            } >> T::unitfrom((ref_size - prc_size - bpos) as u128)).into_u128());
+                .into_u128(),
+            );
             let _ = self.seek(SeekFrom::Current(prc_size as i64));
             Ok(ret)
         }

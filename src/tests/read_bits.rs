@@ -410,12 +410,12 @@ mod u64 {
             0b1011000101110100,
         ];
         let mut bcurs = BitCursor::new(&data[..]);
-        let _ = bcurs.seek(SeekFrom::Start(0));
+        let _ = bcurs.seek(SeekFrom::Start(15));
         let r = bcurs.read_bits::<u64>().unwrap();
-//        assert_eq!(
-//            0b0100110101101000110000001011101001011000101110100101100010111010 as u64,
-//            r
-//        );
+        assert_eq!(
+            0b0100110101101000110000001011101001011000101110100101100010111010 as u64,
+            r
+        );
     }
 
     #[test]
