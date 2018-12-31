@@ -279,7 +279,8 @@ mod u32 {
         ];
         let mut bcurs = BitCursor::new(&data[..]);
         let _ = bcurs.seek(SeekFrom::Start(17));
-        let _ = bcurs.force_read_bits::<u32>().unwrap();
+        let r = bcurs.force_read_bits::<u32>().unwrap();
+        assert_eq!(0b010000111100011110000000 as u32, r);
     }
 
     #[test]
@@ -299,7 +300,6 @@ mod u32 {
     }
 
     #[test]
-    #[should_panic]
     fn read_u32_from_u16s_out_of_range() {
         let data: [u16; 4] = [
             0b1000100001101010,
@@ -309,7 +309,8 @@ mod u32 {
         ];
         let mut bcurs = BitCursor::new(&data[..]);
         let _ = bcurs.seek(SeekFrom::Start(33));
-        let _ = bcurs.force_read_bits::<u32>().unwrap();
+        let r = bcurs.force_read_bits::<u32>().unwrap();
+        assert_eq!(0b00000010111010010110001011101000 as u32, r);
     }
 
     #[test]
@@ -328,7 +329,6 @@ mod u32 {
     }
 
     #[test]
-    #[should_panic]
     fn read_u32_from_u32s_out_of_range() {
         let data: [u32; 3] = [
             0b10010010001001011000100001101010,
@@ -337,7 +337,8 @@ mod u32 {
         ];
         let mut bcurs = BitCursor::new(&data[..]);
         let _ = bcurs.seek(SeekFrom::Start(65));
-        let _ = bcurs.force_read_bits::<u32>().unwrap();
+        let r = bcurs.force_read_bits::<u32>().unwrap();
+        assert_eq!(0b00100100010010110001000011010100 as u32, r);
     }
 
     #[test]
@@ -356,7 +357,6 @@ mod u32 {
     }
 
     #[test]
-    #[should_panic]
     fn read_u32_from_u64s_out_of_range() {
         let data: [u64; 3] = [
             0b1001001000100101100010000110101110010010001001011000100001101010,
@@ -364,8 +364,9 @@ mod u32 {
             0b1001001000100101100010000110101010010010001001011000100001101010,
         ];
         let mut bcurs = BitCursor::new(&data[..]);
-        let _ = bcurs.seek(SeekFrom::Start(162));
-        let _ = bcurs.force_read_bits::<u32>().unwrap();
+        let _ = bcurs.seek(SeekFrom::Start(161));
+        let r = bcurs.force_read_bits::<u32>().unwrap();
+        assert_eq!(0b00100100010010110001000011010100 as u32, r);
     }
 
     #[test]
@@ -384,7 +385,6 @@ mod u32 {
     }
 
     #[test]
-    #[should_panic]
     fn read_u32_from_u128s_out_of_range() {
         let data: [u128; 3] = [
             0b10010010001001011000100001101011100100100010010110001000011010101001001000100101100010000110101110010010001001011000100001101010,
@@ -392,8 +392,10 @@ mod u32 {
             0b10010010001001011000100001101011100100100010010110001000011010101001001000100101100010000110101010010010001001011000100001101010,
         ];
         let mut bcurs = BitCursor::new(&data[..]);
-        let _ = bcurs.seek(SeekFrom::Start(((3 * 128) as i32 - 31) as u64));
-        let _ = bcurs.force_read_bits::<u32>().unwrap();
+        let _ = bcurs.seek(SeekFrom::Start(((3 * 128) as i32 - 7) as u64));
+        let r = bcurs.force_read_bits::<u32>().unwrap();
+        println!("{:#034b}", r);
+        assert_eq!(0b11010100000000000000000000000000 as u32, r);
     }
 }
 
@@ -421,7 +423,6 @@ mod u64 {
     }
 
     #[test]
-    #[should_panic]
     fn read_u64_from_u8s_out_of_range() {
         let data: [u8; 11] = [
             0b01101010, 0b11110001, 0b01110100, 0b10100001, 0b11100011, 0b11000000, 0b11110001,
@@ -429,7 +430,11 @@ mod u64 {
         ];
         let mut bcurs = BitCursor::new(&data[..]);
         let _ = bcurs.seek(SeekFrom::Start(25));
-        let _ = bcurs.force_read_bits::<u64>().unwrap();
+        let r = bcurs.force_read_bits::<u64>().unwrap();
+        assert_eq!(
+            0b0100001111000111100000011110001011101001010000111100011110000000 as u64,
+            r
+        );
     }
 
     #[test]
@@ -459,7 +464,6 @@ mod u64 {
     }
 
     #[test]
-    #[should_panic]
     fn read_u64_from_u16s_out_of_range() {
         let data: [u16; 8] = [
             0b1000100001101010,
@@ -473,7 +477,11 @@ mod u64 {
         ];
         let mut bcurs = BitCursor::new(&data[..]);
         let _ = bcurs.seek(SeekFrom::Start(65));
-        let _ = bcurs.force_read_bits::<u64>().unwrap();
+        let r = bcurs.force_read_bits::<u64>().unwrap();
+        assert_eq!(
+            0b0110001011101001011000101110100101100110011000010110001011101000 as u64,
+            r
+        );
     }
 
     #[test]
@@ -498,7 +506,6 @@ mod u64 {
     }
 
     #[test]
-    #[should_panic]
     fn read_u64_from_u32s_out_of_range() {
         let data: [u32; 3] = [
             0b10010010001001011000100001101010,
@@ -507,7 +514,11 @@ mod u64 {
         ];
         let mut bcurs = BitCursor::new(&data[..]);
         let _ = bcurs.seek(SeekFrom::Start(33));
-        let _ = bcurs.force_read_bits::<u64>().unwrap();
+        let r = bcurs.force_read_bits::<u64>().unwrap();
+        assert_eq!(
+            0b0010010001001011000100001101010100100100010010110001000011010100 as u64,
+            r
+        );
     }
 
     #[test]
@@ -532,7 +543,6 @@ mod u64 {
     }
 
     #[test]
-    #[should_panic]
     fn read_u64_from_u64s_out_of_range() {
         let data: [u64; 3] = [
             0b1001001000100101100010000110101110010010001001011000100001101010,
@@ -540,8 +550,12 @@ mod u64 {
             0b1001001000100101100010000110101010010010001001011000100001101010,
         ];
         let mut bcurs = BitCursor::new(&data[..]);
-        let _ = bcurs.seek(SeekFrom::Start(130));
-        let _ = bcurs.force_read_bits::<u64>().unwrap();
+        let _ = bcurs.seek(SeekFrom::Start(129));
+        let r = bcurs.force_read_bits::<u64>().unwrap();
+        assert_eq!(
+            0b0010010001001011000100001101010100100100010010110001000011010100 as u64,
+            r
+        );
     }
 
     #[test]
@@ -566,7 +580,6 @@ mod u64 {
     }
 
     #[test]
-    #[should_panic]
     fn read_u64_from_u128s_out_of_range() {
         let data: [u128; 3] = [
             0b10010010001001011000100001101011100100100010010110001000011010101001001000100101100010000110101110010010001001011000100001101010,
@@ -575,6 +588,10 @@ mod u64 {
         ];
         let mut bcurs = BitCursor::new(&data[..]);
         let _ = bcurs.seek(SeekFrom::Start(((3 * 128) as i32 - 63) as u64));
-        let _ = bcurs.force_read_bits::<u64>().unwrap();
+        let r = bcurs.force_read_bits::<u64>().unwrap();
+        assert_eq!(
+            0b0010010001001011000100001101010100100100010010110001000011010100 as u64,
+            r
+        );
     }
 }
