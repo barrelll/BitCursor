@@ -2,7 +2,7 @@ mod tests;
 
 //use std::convert::{From, Into};
 use std::fmt::{Binary, Debug, Display};
-use std::io::{Cursor, Error, ErrorKind, Result, Seek, SeekFrom, Read};
+use std::io::{Cursor, Error, ErrorKind, Read, Result, Seek, SeekFrom};
 use std::ops::{
     Add, AddAssign, BitAnd, BitAndAssign, BitOr, BitOrAssign, BitXor, BitXorAssign, Div, DivAssign,
     Mul, MulAssign, Rem, RemAssign, Shl, ShlAssign, Shr, ShrAssign, Sub, SubAssign,
@@ -405,7 +405,10 @@ impl<'a, T: Unit> Seek for BitCursor<T> {
     }
 }
 
-impl<'a, T: Unit> Read for BitCursor<&'a [T]> {
+macro_rules! impl_read {
+    ( $( $x:ty),* ) => {
+        $(
+impl<'a, T: Unit> Read for BitCursor<$x> {
     fn read(&mut self, buf: &mut [u8]) -> Result<usize> {
         for i in 0..buf.len() {
             buf[i] = match self.read_bits::<u8>() {
@@ -420,3 +423,7 @@ impl<'a, T: Unit> Read for BitCursor<&'a [T]> {
         Ok(buf.len())
     }
 }
+        )*
+    };
+}
+impl_read!(&'a [T], &'a mut [T], Vec<T>, &'a Vec<T>, &'a mut Vec<T>);
