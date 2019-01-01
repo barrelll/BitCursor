@@ -187,7 +187,7 @@ trait ForceSlice<I> {
 
 impl<'a, I> ForceSlice<I> for &'a [I] {
     fn force_slice(&self, x: usize, y: usize) -> Result<&[I]> {
-        if x > self.len() {
+        if x > self.len() - 1 {
             return Err(Error::new(ErrorKind::InvalidInput, format!("slice index starts at {}, but ends at {}", x, self.len())))
         }
         if y > self.len() {
@@ -200,7 +200,7 @@ impl<'a, I> ForceSlice<I> for &'a [I] {
 
 impl<'a, I> ForceSlice<I> for &'a mut [I] {
     fn force_slice(&self, x: usize, y: usize) -> Result<&[I]> {
-        if x > self.len() {
+        if x > self.len() - 1 {
             return Err(Error::new(ErrorKind::InvalidInput, format!("slice index starts at {}, but ends at {}", x, self.len())))
         }
         if y > self.len() {
@@ -213,7 +213,7 @@ impl<'a, I> ForceSlice<I> for &'a mut [I] {
 
 impl<'a, I> ForceSlice<I> for Vec<I> {
     fn force_slice(&self, x: usize, y: usize) -> Result<&[I]> {
-        if x > self.len() {
+        if x > self.len() - 1 {
             return Err(Error::new(ErrorKind::InvalidInput, format!("slice index starts at {}, but ends at {}", x, self.len())))
         }
         if y > self.len() {
@@ -226,7 +226,7 @@ impl<'a, I> ForceSlice<I> for Vec<I> {
 
 impl<'a, I> ForceSlice<I> for &'a Vec<I> {
     fn force_slice(&self, x: usize, y: usize) -> Result<&[I]> {
-        if x > self.len() {
+        if x > self.len() - 1 {
             return Err(Error::new(ErrorKind::InvalidInput, format!("slice index starts at {}, but ends at {}", x, self.len())))
         }
         if y > self.len() {
@@ -239,7 +239,7 @@ impl<'a, I> ForceSlice<I> for &'a Vec<I> {
 
 impl<'a, I> ForceSlice<I> for &'a mut Vec<I> {
     fn force_slice(&self, x: usize, y: usize) -> Result<&[I]> {
-        if x > self.len() {
+        if x > self.len() - 1 {
             return Err(Error::new(ErrorKind::InvalidInput, format!("slice index starts at {}, but ends at {}", x, self.len())))
         }
         if y > self.len() {
@@ -605,7 +605,6 @@ macro_rules! impl_read {
 impl<'a, T: Unit> Read for BitCursor<$x> {
     fn read(&mut self, buf: &mut [u8]) -> Result<usize> {
         for i in 0..buf.len() {
-            println!("{:?}", i);
             buf[i] = match self.read_bits::<u8>() {
                 Ok(val) => val,
                 Err(_) => match self.force_read_bits::<u8>() {
