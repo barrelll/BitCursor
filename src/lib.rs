@@ -315,6 +315,7 @@ impl<'a, T: Unit> ReadBits<T> for BitCursor<$x> {
                     };
                     ret |= shifted;
                 }
+                let _ = self.seek(SeekFrom::Current(prc_size as i64))?;
                 match ref_size.checked_sub(prc_size) {
                     Some(sub) => Ok(U::unitfrom((ret >> T::unitfrom(sub as u128)).into_u128())),
                     None => Ok(U::unitfrom(ret.into_u128())),
@@ -343,6 +344,7 @@ impl<'a, T: Unit> ReadBits<T> for BitCursor<$x> {
                     };
                     ret |= U::unitfrom(shifted.into_u128());
                 }
+                let _ = self.seek(SeekFrom::Current(prc_size as i64))?;
                 match ref_size.checked_sub(prc_size) {
                     Some(sub) => Ok(ret >> U::unitfrom(sub as u128)),
                     None => Ok(ret),
@@ -361,7 +363,7 @@ impl<'a, T: Unit> ReadBits<T> for BitCursor<$x> {
                 }
                 .into_u128(),
             );
-            let _ = self.seek(SeekFrom::Current(prc_size as i64));
+            let _ = self.seek(SeekFrom::Current(prc_size as i64))?;
             Ok(ret)
         }
     }
@@ -414,6 +416,7 @@ impl<'a, T: Unit> ForceReadBits<T> for BitCursor<$x> {
                     };
                     ret |= shifted;
                 }
+                let _ = self.seek(SeekFrom::Current(prc_size as i64))?;
                 match ref_size.checked_sub(prc_size) {
                     Some(sub) => Ok(U::unitfrom((ret >> T::unitfrom(sub as u128)).into_u128())),
                     None => Ok(U::unitfrom(ret.into_u128())),
@@ -442,6 +445,7 @@ impl<'a, T: Unit> ForceReadBits<T> for BitCursor<$x> {
                     };
                     ret |= U::unitfrom(shifted.into_u128());
                 }
+                let _ = self.seek(SeekFrom::Current(prc_size as i64))?;
                 match ref_size.checked_sub(prc_size) {
                     Some(sub) => Ok(ret >> U::unitfrom(sub as u128)),
                     None => Ok(ret),
@@ -460,7 +464,7 @@ impl<'a, T: Unit> ForceReadBits<T> for BitCursor<$x> {
                 }
                 .into_u128(),
             );
-            let _ = self.seek(SeekFrom::Current(prc_size as i64));
+            let _ = self.seek(SeekFrom::Current(prc_size as i64))?;
             Ok(ret)
         }
     }
@@ -586,6 +590,7 @@ macro_rules! impl_read {
 impl<'a, T: Unit> Read for BitCursor<$x> {
     fn read(&mut self, buf: &mut [u8]) -> Result<usize> {
         for i in 0..buf.len() {
+            println!("{:?}", i);
             buf[i] = match self.read_bits::<u8>() {
                 Ok(val) => val,
                 Err(_) => match self.force_read_bits::<u8>() {
