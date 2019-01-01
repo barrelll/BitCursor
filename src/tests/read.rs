@@ -33,4 +33,14 @@ mod u8 {
         assert_eq!(4, amt);
         assert_eq!(vec![49, 50, 51, 52], Vec::from(buf))
     }
+
+    #[test]
+    fn read_from_u8_to_bytes() {
+        let data: [u8; 4] = [0b00011000, 0b10011001, 0b00011001, 0b10011010];
+        let mut bcurs = BitCursor::new(&data[..]);
+        let _ = bcurs.seek(SeekFrom::Start(15));
+        for b in bcurs.bytes() {
+            let _ = b.unwrap();
+        }
+    }
 }
