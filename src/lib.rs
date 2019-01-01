@@ -188,7 +188,10 @@ trait ForceSlice<I> {
 impl<'a, I> ForceSlice<I> for &'a [I] {
     fn force_slice(&self, x: usize, y: usize) -> Result<&[I]> {
         if x > self.len() - 1 {
-            return Err(Error::new(ErrorKind::InvalidInput, format!("slice index starts at {}, but ends at {}", x, self.len())))
+            return Err(Error::new(
+                ErrorKind::InvalidInput,
+                format!("slice index starts at {}, but ends at {}", x, self.len()),
+            ));
         }
         if y > self.len() {
             Ok(&self[x..])
@@ -201,7 +204,10 @@ impl<'a, I> ForceSlice<I> for &'a [I] {
 impl<'a, I> ForceSlice<I> for &'a mut [I] {
     fn force_slice(&self, x: usize, y: usize) -> Result<&[I]> {
         if x > self.len() - 1 {
-            return Err(Error::new(ErrorKind::InvalidInput, format!("slice index starts at {}, but ends at {}", x, self.len())))
+            return Err(Error::new(
+                ErrorKind::InvalidInput,
+                format!("slice index starts at {}, but ends at {}", x, self.len()),
+            ));
         }
         if y > self.len() {
             Ok(&self[x..])
@@ -214,7 +220,10 @@ impl<'a, I> ForceSlice<I> for &'a mut [I] {
 impl<'a, I> ForceSlice<I> for Vec<I> {
     fn force_slice(&self, x: usize, y: usize) -> Result<&[I]> {
         if x > self.len() - 1 {
-            return Err(Error::new(ErrorKind::InvalidInput, format!("slice index starts at {}, but ends at {}", x, self.len())))
+            return Err(Error::new(
+                ErrorKind::InvalidInput,
+                format!("slice index starts at {}, but ends at {}", x, self.len()),
+            ));
         }
         if y > self.len() {
             Ok(&self[x..])
@@ -227,7 +236,10 @@ impl<'a, I> ForceSlice<I> for Vec<I> {
 impl<'a, I> ForceSlice<I> for &'a Vec<I> {
     fn force_slice(&self, x: usize, y: usize) -> Result<&[I]> {
         if x > self.len() - 1 {
-            return Err(Error::new(ErrorKind::InvalidInput, format!("slice index starts at {}, but ends at {}", x, self.len())))
+            return Err(Error::new(
+                ErrorKind::InvalidInput,
+                format!("slice index starts at {}, but ends at {}", x, self.len()),
+            ));
         }
         if y > self.len() {
             Ok(&self[x..])
@@ -240,7 +252,10 @@ impl<'a, I> ForceSlice<I> for &'a Vec<I> {
 impl<'a, I> ForceSlice<I> for &'a mut Vec<I> {
     fn force_slice(&self, x: usize, y: usize) -> Result<&[I]> {
         if x > self.len() - 1 {
-            return Err(Error::new(ErrorKind::InvalidInput, format!("slice index starts at {}, but ends at {}", x, self.len())))
+            return Err(Error::new(
+                ErrorKind::InvalidInput,
+                format!("slice index starts at {}, but ends at {}", x, self.len()),
+            ));
         }
         if y > self.len() {
             Ok(&self[x..])
@@ -666,7 +681,7 @@ impl<'a, T: Unit> Write for BitCursor<&'a mut [T]> {
         let inner = self.get_mut();
         for (enumeration, val) in buf.iter().enumerate() {
             if cpos + enumeration > inner.len() {
-                return Ok(enumeration)
+                return Ok(enumeration);
             }
             let val = (T::unitfrom(*val as u128)
                 << T::unitfrom((T::SIZE - (8 * enumeration) as u8) as u128))
