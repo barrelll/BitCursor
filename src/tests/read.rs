@@ -36,11 +36,28 @@ mod u8 {
 
     #[test]
     fn read_from_u8_to_bytes() {
-        let data: [u8; 4] = [0b00011000, 0b10011001, 0b00011001, 0b10011010];
+        let data: [u8; 4] = [0b00011000, 0b10011001, 0b00011001, 0b10011011];
         let mut bcurs = BitCursor::new(&data[..]);
         let _ = bcurs.seek(SeekFrom::Start(15));
-        for b in bcurs.bytes() {
+        let mut iter = 0;
+        for (e, b) in bcurs.bytes().enumerate() {
             let _ = b.unwrap();
+            iter = e;
         }
+        assert_eq!(2, iter);
+    }
+
+    #[test]
+    fn read_from_u8_to_chain() {
+        let d: [u8; 4] = [0b00011000, 0b10011001, 0b00011001, 0b10011010];
+        let d2: [u8; 4] = [0b00011000, 0b10011001, 0b00011001, 0b10011010];
+        let bcurs = BitCursor::new(&d[..]);
+        let handle = bcurs.chain(&d2[..]);
+        let mut iter = 0;
+        for (e, b) in handle.bytes().enumerate() {
+            let _ = b.unwrap();
+            iter = e;
+        }
+        assert_eq!(7, iter);
     }
 }
