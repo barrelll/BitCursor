@@ -41,6 +41,7 @@ pub trait Unit:
     fn max_value() -> Self;
     fn checked_shr(self, rhs: u32) -> Option<Self>;
     fn checked_shl(self, rhs: u32) -> Option<Self>;
+    fn read_bit_at(&self, rhs: u8) -> Option<bool>;
 
     fn into_u8(self) -> u8;
     fn into_u16(self) -> u16;
@@ -72,6 +73,14 @@ macro_rules! impl_unit {
                 }
                 fn checked_shl(self, rhs: u32) ->  Option<Self> {
                     self.checked_shl(rhs)
+                }
+                fn read_bit_at(&self, rhs: u8) -> Option<bool> {
+                    let bitpos = 1 as $x;
+                    if rhs >= Self::SIZE {
+                        None
+                    } else {
+                        Some(*self & bitpos << rhs as $x > 1)
+                    }
                 }
                 fn into_u8(self) -> u8 { self as u8 }
                 fn into_u16(self) -> u16 { self as u16 }
@@ -309,6 +318,7 @@ impl<T> BitCursor<T> {
 }
 
 pub trait ReadBits<T> {
+    fn read_bit(&mut self) -> Result<bool>;
     fn read_bits<U: Unit>(&mut self) -> Result<U>;
 }
 
@@ -316,6 +326,27 @@ macro_rules! impl_readbits {
     ( $( $x:ty),* ) => {
         $(
 impl<'a, T: Unit> ReadBits<T> for BitCursor<$x> {
+    fn read_bit(&mut self) -> Result<bool> {
+        let cpos = self.cur_position();
+        let bpos = self.bit_position();
+        let val = match self.get_ref().get(cpos) {
+            Some(val) => *val,
+            None => {
+                return Err(Error::new(
+                    ErrorKind::InvalidInput,
+                    "Cursor position is out of range of slice",
+                ))
+            }
+        };
+        match val.read_bit_at(bpos) {
+            Some(val) => Ok(val),
+            None => Err(Error::new(
+                ErrorKind::InvalidInput,
+                "Bit position is greater than unit size",
+            )),
+        }
+    }
+
     fn read_bits<U: Unit>(&mut self) -> Result<U> {
         let cpos = self.cur_position() as usize;
         let bpos = self.bit_position();
@@ -404,6 +435,25 @@ impl<'a, T: Unit> ReadBits<T> for BitCursor<$x> {
 impl_readbits!(&'a [T], &'a mut [T], Vec<T>, &'a Vec<T>, &'a mut Vec<T>);
 
 impl<'a, T: Unit> ReadBits<T> for BitCursor<T> {
+    fn read_bit(&mut self) -> Result<bool> {
+        let cpos = self.cur_position();
+        if cpos > 0 {
+            return Err(Error::new(
+                ErrorKind::InvalidInput,
+                "Cursor position is out of range of slice",
+            ));
+        }
+        let bpos = self.bit_position();
+        let val = *self.get_ref();
+        match val.read_bit_at(bpos) {
+            Some(val) => Ok(val),
+            None => Err(Error::new(
+                ErrorKind::InvalidInput,
+                "Bit position is greater than unit size",
+            )),
+        }
+    }
+
     fn read_bits<U: Unit>(&mut self) -> Result<U> {
         return Err(Error::new(ErrorKind::Other, "Not implemented yet"));
     }

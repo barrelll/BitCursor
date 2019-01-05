@@ -143,7 +143,10 @@ mod u32 {
         let mut buf = String::new();
         let amt = bcurs.read_to_string(&mut buf).unwrap();
         assert_eq!(16, amt);
-        assert_eq!(vec![0, 0, 0, 48, 0, 0, 1, 50, 0, 0, 0, 50, 0, 0, 1, 52], Vec::from(buf))
+        assert_eq!(
+            vec![0, 0, 0, 48, 0, 0, 1, 50, 0, 0, 0, 50, 0, 0, 1, 52],
+            Vec::from(buf)
+        )
     }
 
     #[test]
@@ -181,7 +184,10 @@ mod u64 {
         let mut buf = vec![];
         let amt = bcurs.read_to_end(&mut buf).unwrap();
         assert_eq!(23, amt);
-        assert_eq!(vec![0, 0, 0, 0, 0, 13, 64, 0, 0, 0, 0, 0, 0, 30, 32, 0, 0, 0, 0, 0, 0, 14, 128], Vec::from(buf))
+        assert_eq!(
+            vec![0, 0, 0, 0, 0, 13, 64, 0, 0, 0, 0, 0, 0, 30, 32, 0, 0, 0, 0, 0, 0, 14, 128],
+            Vec::from(buf)
+        )
     }
 
     #[test]
@@ -192,7 +198,13 @@ mod u64 {
         let mut buf = String::new();
         let amt = bcurs.read_to_string(&mut buf).unwrap();
         assert_eq!(32, amt);
-        assert_eq!(vec![0, 0, 0, 0, 0, 0, 0, 48, 0, 0, 0, 0, 0, 0, 1, 50, 0, 0, 0, 0, 0, 0, 0, 50, 0, 0, 0, 0, 0, 0, 1, 52], Vec::from(buf))
+        assert_eq!(
+            vec![
+                0, 0, 0, 0, 0, 0, 0, 48, 0, 0, 0, 0, 0, 0, 1, 50, 0, 0, 0, 0, 0, 0, 0, 50, 0, 0, 0,
+                0, 0, 0, 1, 52
+            ],
+            Vec::from(buf)
+        )
     }
 
     #[test]
@@ -230,7 +242,13 @@ mod u128 {
         let mut buf = vec![];
         let amt = bcurs.read_to_end(&mut buf).unwrap();
         assert_eq!(47, amt);
-        assert_eq!(vec![0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 13, 64, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 30, 32, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 14, 128], Vec::from(buf))
+        assert_eq!(
+            vec![
+                0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 13, 64, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                0, 0, 30, 32, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 14, 128
+            ],
+            Vec::from(buf)
+        )
     }
 
     #[test]
@@ -241,7 +259,14 @@ mod u128 {
         let mut buf = String::new();
         let amt = bcurs.read_to_string(&mut buf).unwrap();
         assert_eq!(64, amt);
-        assert_eq!(vec![0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 48, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 50, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 50, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 52], Vec::from(buf))
+        assert_eq!(
+            vec![
+                0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 48, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                0, 0, 0, 1, 50, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 50, 0, 0, 0, 0, 0, 0,
+                0, 0, 0, 0, 0, 0, 0, 0, 1, 52
+            ],
+            Vec::from(buf)
+        )
     }
 
     #[test]
