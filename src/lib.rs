@@ -465,7 +465,7 @@ impl<'a, T: Unit> ReadBits<T> for BitCursor<T> {
 
     fn read_bits<U: Unit>(&mut self) -> Result<U> {
         let cpos = self.cur_position();
-        let bpos = self.bit_position();
+        let _bpos = self.bit_position();
         let _ref_size = T::SIZE;
         let _prc_size = U::SIZE;
         if cpos > 0 {
