@@ -475,17 +475,29 @@ impl_readbits!(&'a [T], &'a mut [T], Vec<T>, &'a Vec<T>, &'a mut Vec<T>);
 impl<'a, T: Unit> ReadBits<T> for BitCursor<T> {
     fn read_bits<U: Unit>(&mut self) -> Result<U> {
         let cpos = self.cur_position();
-        let _bpos = self.bit_position();
-        let _ref_size = T::SIZE;
-        let _prc_size = U::SIZE;
+        let bpos = self.bit_position();
+        let ref_size = T::SIZE;
+        let prc_size = U::SIZE;
         if cpos > 0 {
             return Err(Error::new(
                 ErrorKind::InvalidInput,
                 "Cursor position is out of range of slice",
             ));
         } else {
+            if prc_size + bpos > ref_size {
+                return Err(Error::new(
+                    ErrorKind::InvalidInput,
+                    format!("Not enough bits in type {:?}", self.get_ref()),
+                ));
+            } else {
+                let ret = U::unitfrom(
+                    self.get_ref()
+                        .shr(T::unitfrom((ref_size - prc_size - bpos) as u128))
+                        .into_u128(),
+                );
+                Ok(ret)
+            }
         }
-        return Err(Error::new(ErrorKind::Other, "Not implemented yet"));
     }
 }
 
