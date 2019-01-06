@@ -1,3 +1,4 @@
+#![allow(unused_imports)]
 mod tests;
 
 use std::cmp::min;
@@ -9,36 +10,38 @@ use std::ops::{
 };
 
 pub trait Unit:
-    Add<Output = Self>
-    + AddAssign
-    + Sub<Output = Self>
-    + SubAssign
-    + Shl<Output = Self>
-    + ShlAssign
-    + Shr<Output = Self>
-    + ShrAssign
-    + BitAnd<Output = Self>
+//    Add<Output = Self>
+//    + AddAssign
+//    + Sub<Output = Self>
+//    + SubAssign
+//    + Shl<Output = Self>
+//    + ShlAssign
+//    + Shr<Output = Self>
+//    + ShrAssign
+    BitAnd<Output = Self>
     + BitAndAssign
     + BitOr<Output = Self>
     + BitOrAssign
     + BitXor<Output = Self>
     + BitXorAssign
-    + Mul<Output = Self>
-    + MulAssign
-    + Div<Output = Self>
-    + DivAssign
-    + Rem<Output = Self>
-    + RemAssign
+//    + Mul<Output = Self>
+//    + MulAssign
+//    + Div<Output = Self>
+//    + DivAssign
+//    + Rem<Output = Self>
+//    + RemAssign
     + Sized
     + Copy
     + Clone
     + Debug
     + Display
-    + Binary
+//    + Binary
 {
     const SIZE: u8;
     fn unitfrom(val: u128) -> Self;
     fn max_value() -> Self;
+    fn shr(self, rhs: Self) -> Self;
+    fn shl(self, rhs: Self) -> Self;
     fn checked_shr(self, rhs: u32) -> Option<Self>;
     fn checked_shl(self, rhs: u32) -> Option<Self>;
     fn read_bit_at(&self, rhs: u8) -> Option<bool>;
@@ -67,6 +70,12 @@ macro_rules! impl_unit {
                 }
                 fn max_value() -> $x {
                     $x::max_value()
+                }
+                fn shr(self, rhs: Self) -> Self {
+                    self >> rhs
+                }
+                fn shl(self, rhs: Self) -> Self {
+                    self << rhs
                 }
                 fn checked_shr(self, rhs: u32) -> Option<Self> {
                     self.checked_shr(rhs)
@@ -327,7 +336,7 @@ macro_rules! impl_readbits {
         $(
 impl<'a, T: Unit> ReadBits<T> for BitCursor<$x> {
     fn read_bit(&mut self) -> Result<bool> {
-        let cpos = self.cur_position();
+        let cpos = self.cur_position() as usize;
         let bpos = self.bit_position();
         let val = match self.get_ref().get(cpos) {
             Some(val) => *val,
@@ -363,7 +372,7 @@ impl<'a, T: Unit> ReadBits<T> for BitCursor<$x> {
                     .enumerate()
                 {
                     let shifted = match bpos.checked_sub(ref_size * enumueration as u8) {
-                        Some(sub) => *val << T::unitfrom(sub as u128),
+                        Some(sub) => val.shl(T::unitfrom(sub as u128)),
                         None => {
                             match val.checked_shr(
                                 ((bpos as i128) - ((ref_size * enumueration as u8) as i128))
@@ -378,7 +387,7 @@ impl<'a, T: Unit> ReadBits<T> for BitCursor<$x> {
                 }
                 let _ = self.seek(SeekFrom::Current(prc_size as i64))?;
                 match ref_size.checked_sub(prc_size) {
-                    Some(sub) => Ok(U::unitfrom((ret >> T::unitfrom(sub as u128)).into_u128())),
+                    Some(sub) => Ok(U::unitfrom((ret.shr(T::unitfrom(sub as u128))).into_u128())),
                     None => Ok(U::unitfrom(ret.into_u128())),
                 }
             } else {
@@ -390,9 +399,9 @@ impl<'a, T: Unit> ReadBits<T> for BitCursor<$x> {
                     .enumerate()
                 {
                     let val =
-                        U::unitfrom(val.into_u128()) << U::unitfrom((prc_size - ref_size) as u128);
+                        U::unitfrom(val.into_u128()).shl(U::unitfrom((prc_size - ref_size) as u128));
                     let shifted = match bpos.checked_sub(ref_size * enumueration as u8) {
-                        Some(sub) => val << U::unitfrom(sub as u128),
+                        Some(sub) => val.shl(U::unitfrom(sub as u128)),
                         None => {
                             match val.checked_shr(
                                 ((bpos as i128) - ((ref_size * enumueration as u8) as i128))
@@ -407,14 +416,14 @@ impl<'a, T: Unit> ReadBits<T> for BitCursor<$x> {
                 }
                 let _ = self.seek(SeekFrom::Current(prc_size as i64))?;
                 match ref_size.checked_sub(prc_size) {
-                    Some(sub) => Ok(ret >> U::unitfrom(sub as u128)),
+                    Some(sub) => Ok(ret.shr(U::unitfrom(sub as u128))),
                     None => Ok(ret),
                 }
             }
         } else {
             let ret = U::unitfrom(
                 match self.get_ref().get(cpos) {
-                    Some(v) => *v >> T::unitfrom((ref_size - prc_size - bpos) as u128),
+                    Some(v) => v.shr(T::unitfrom((ref_size - prc_size - bpos) as u128)),
                     None => {
                         return Err(Error::new(
                             ErrorKind::InvalidData,
@@ -455,6 +464,17 @@ impl<'a, T: Unit> ReadBits<T> for BitCursor<T> {
     }
 
     fn read_bits<U: Unit>(&mut self) -> Result<U> {
+        let cpos = self.cur_position();
+        let bpos = self.bit_position();
+        let _ref_size = T::SIZE;
+        let _prc_size = U::SIZE;
+        if cpos > 0 {
+            return Err(Error::new(
+                ErrorKind::InvalidInput,
+                "Cursor position is out of range of slice",
+            ));
+        } else {
+        }
         return Err(Error::new(ErrorKind::Other, "Not implemented yet"));
     }
 }
@@ -483,7 +503,7 @@ impl<'a, T: Unit> ForceReadBits<T> for BitCursor<$x> {
                     .enumerate()
                 {
                     let shifted = match bpos.checked_sub(ref_size * enumueration as u8) {
-                        Some(sub) => *val << T::unitfrom(sub as u128),
+                        Some(sub) => val.shl(T::unitfrom(sub as u128)),
                         None => {
                             match val.checked_shr(
                                 ((bpos as i128) - ((ref_size * enumueration as u8) as i128))
@@ -498,7 +518,7 @@ impl<'a, T: Unit> ForceReadBits<T> for BitCursor<$x> {
                 }
                 let _ = self.seek(SeekFrom::Current(prc_size as i64))?;
                 match ref_size.checked_sub(prc_size) {
-                    Some(sub) => Ok(U::unitfrom((ret >> T::unitfrom(sub as u128)).into_u128())),
+                    Some(sub) => Ok(U::unitfrom(ret.shr(T::unitfrom(sub as u128)).into_u128())),
                     None => Ok(U::unitfrom(ret.into_u128())),
                 }
             } else {
@@ -510,9 +530,9 @@ impl<'a, T: Unit> ForceReadBits<T> for BitCursor<$x> {
                     .enumerate()
                 {
                     let val =
-                        U::unitfrom(val.into_u128()) << U::unitfrom((prc_size - ref_size) as u128);
+                        U::unitfrom(val.into_u128()).shl(U::unitfrom((prc_size - ref_size) as u128));
                     let shifted = match bpos.checked_sub(ref_size * enumueration as u8) {
-                        Some(sub) => val << U::unitfrom(sub as u128),
+                        Some(sub) => val.shl(U::unitfrom(sub as u128)),
                         None => {
                             match val.checked_shr(
                                 ((bpos as i128) - ((ref_size * enumueration as u8) as i128))
@@ -527,14 +547,14 @@ impl<'a, T: Unit> ForceReadBits<T> for BitCursor<$x> {
                 }
                 let _ = self.seek(SeekFrom::Current(prc_size as i64))?;
                 match ref_size.checked_sub(prc_size) {
-                    Some(sub) => Ok(ret >> U::unitfrom(sub as u128)),
+                    Some(sub) => Ok(ret.shr(U::unitfrom(sub as u128))),
                     None => Ok(ret),
                 }
             }
         } else {
             let ret = U::unitfrom(
                 match self.get_ref().get(cpos) {
-                    Some(v) => *v >> T::unitfrom((ref_size - prc_size - bpos) as u128),
+                    Some(v) => v.shr(T::unitfrom((ref_size - prc_size - bpos) as u128)),
                     None => {
                         return Err(Error::new(
                             ErrorKind::InvalidData,
@@ -734,8 +754,8 @@ impl<'a, T: Unit> Write for BitCursor<&'a mut [T]> {
                 return Ok(enumeration);
             }
             let val = (T::unitfrom(*val as u128)
-                << T::unitfrom((T::SIZE - (8 * enumeration) as u8) as u128))
-                >> T::unitfrom(bpos as u128);
+                .shl(T::unitfrom((T::SIZE - (8 * enumeration) as u8) as u128)))
+            .shr(T::unitfrom(bpos as u128));
             inner[cpos + enumeration] |= val;
         }
         Ok(0)
