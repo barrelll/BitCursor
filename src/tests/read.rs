@@ -36,7 +36,6 @@ mod bit {
             false, false, true, false, false, false, true, true, false, false, true, true, false,
             false, true, true, false, true, false,
         ];
-//        let data: [u8; 4] = [0b00011000, 0b10011001, 0b00011001, 0b10011010];
         let mut bcurs = BitCursor::new(&data[..]);
         let _ = bcurs.seek(SeekFrom::Start(1));
         let mut buf = String::new();
