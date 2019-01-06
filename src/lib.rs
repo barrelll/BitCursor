@@ -1,4 +1,3 @@
-#![allow(unused_imports)]
 mod tests;
 
 use std::cmp::min;
@@ -10,32 +9,17 @@ use std::ops::{
 };
 
 pub trait Unit:
-//    Add<Output = Self>
-//    + AddAssign
-//    + Sub<Output = Self>
-//    + SubAssign
-//    + Shl<Output = Self>
-//    + ShlAssign
-//    + Shr<Output = Self>
-//    + ShrAssign
     BitAnd<Output = Self>
     + BitAndAssign
     + BitOr<Output = Self>
     + BitOrAssign
     + BitXor<Output = Self>
     + BitXorAssign
-//    + Mul<Output = Self>
-//    + MulAssign
-//    + Div<Output = Self>
-//    + DivAssign
-//    + Rem<Output = Self>
-//    + RemAssign
     + Sized
     + Copy
     + Clone
     + Debug
     + Display
-//    + Binary
 {
     const SIZE: u8;
     fn unitfrom(val: u128) -> Self;
