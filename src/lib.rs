@@ -1,12 +1,9 @@
 mod tests;
 
 use std::cmp::min;
-use std::fmt::{Binary, Debug, Display};
+use std::fmt::{Debug, Display};
 use std::io::{BufRead, Cursor, Error, ErrorKind, Read, Result, Seek, SeekFrom, Write};
-use std::ops::{
-    Add, AddAssign, BitAnd, BitAndAssign, BitOr, BitOrAssign, BitXor, BitXorAssign, Div, DivAssign,
-    Mul, MulAssign, Rem, RemAssign, Shl, ShlAssign, Shr, ShrAssign, Sub, SubAssign,
-};
+use std::ops::{BitAnd, BitAndAssign, BitOr, BitOrAssign, BitXor, BitXorAssign};
 
 pub trait Unit:
     BitAnd<Output = Self>
