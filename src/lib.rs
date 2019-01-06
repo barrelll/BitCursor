@@ -39,7 +39,6 @@ pub trait Unit:
 {
     const SIZE: u8;
     fn unitfrom(val: u128) -> Self;
-    fn max_value() -> Self;
     fn shr(self, rhs: Self) -> Self;
     fn shl(self, rhs: Self) -> Self;
     fn checked_shr(self, rhs: u32) -> Option<Self>;
@@ -67,9 +66,6 @@ macro_rules! impl_unit {
 
                 fn unitfrom(val: u128) -> $x {
                     val as $x
-                }
-                fn max_value() -> $x {
-                    $x::max_value()
                 }
                 fn shr(self, rhs: Self) -> Self {
                     self >> rhs
@@ -109,6 +105,80 @@ macro_rules! impl_unit {
 impl_unit!(
     u8, 8, u16, 16, u32, 32, u64, 64, u128, 128, i8, 8, i16, 16, i32, 32, i64, 64, i128, 128
 );
+
+impl Unit for bool {
+    const SIZE: u8 = 1;
+
+    fn unitfrom(val: u128) -> bool {
+        val > 0
+    }
+    fn shr(self, rhs: Self) -> Self {
+        if rhs {
+            false
+        } else {
+            self
+        }
+    }
+    fn shl(self, rhs: Self) -> Self {
+        if rhs {
+            false
+        } else {
+            self
+        }
+    }
+    fn checked_shr(self, rhs: u32) -> Option<Self> {
+        if rhs > 0 {
+            None
+        } else {
+            Some(self)
+        }
+    }
+    fn checked_shl(self, rhs: u32) -> Option<Self> {
+        if rhs > 0 {
+            None
+        } else {
+            Some(self)
+        }
+    }
+    fn read_bit_at(&self, rhs: u8) -> Option<bool> {
+        if rhs > 0 {
+            None
+        } else {
+            Some(*self)
+        }
+    }
+    fn into_u8(self) -> u8 {
+        self as u8
+    }
+    fn into_u16(self) -> u16 {
+        self as u16
+    }
+    fn into_u32(self) -> u32 {
+        self as u32
+    }
+    fn into_u64(self) -> u64 {
+        self as u64
+    }
+    fn into_u128(self) -> u128 {
+        self as u128
+    }
+
+    fn into_i8(self) -> i8 {
+        self as i8
+    }
+    fn into_i16(self) -> i16 {
+        self as i16
+    }
+    fn into_i32(self) -> i32 {
+        self as i32
+    }
+    fn into_i64(self) -> i64 {
+        self as i64
+    }
+    fn into_i128(self) -> i128 {
+        self as i128
+    }
+}
 
 trait SafeSlice<I> {
     fn slice(&self, x: usize, y: usize) -> Result<&[I]>;
@@ -327,7 +397,6 @@ impl<T> BitCursor<T> {
 }
 
 pub trait ReadBits<T> {
-    fn read_bit(&mut self) -> Result<bool>;
     fn read_bits<U: Unit>(&mut self) -> Result<U>;
 }
 
@@ -335,27 +404,6 @@ macro_rules! impl_readbits {
     ( $( $x:ty),* ) => {
         $(
 impl<'a, T: Unit> ReadBits<T> for BitCursor<$x> {
-    fn read_bit(&mut self) -> Result<bool> {
-        let cpos = self.cur_position() as usize;
-        let bpos = self.bit_position();
-        let val = match self.get_ref().get(cpos) {
-            Some(val) => *val,
-            None => {
-                return Err(Error::new(
-                    ErrorKind::InvalidInput,
-                    "Cursor position is out of range of slice",
-                ))
-            }
-        };
-        match val.read_bit_at(bpos) {
-            Some(val) => Ok(val),
-            None => Err(Error::new(
-                ErrorKind::InvalidInput,
-                "Bit position is greater than unit size",
-            )),
-        }
-    }
-
     fn read_bits<U: Unit>(&mut self) -> Result<U> {
         let cpos = self.cur_position() as usize;
         let bpos = self.bit_position();
@@ -444,25 +492,6 @@ impl<'a, T: Unit> ReadBits<T> for BitCursor<$x> {
 impl_readbits!(&'a [T], &'a mut [T], Vec<T>, &'a Vec<T>, &'a mut Vec<T>);
 
 impl<'a, T: Unit> ReadBits<T> for BitCursor<T> {
-    fn read_bit(&mut self) -> Result<bool> {
-        let cpos = self.cur_position();
-        if cpos > 0 {
-            return Err(Error::new(
-                ErrorKind::InvalidInput,
-                "Cursor position is out of range of slice",
-            ));
-        }
-        let bpos = self.bit_position();
-        let val = *self.get_ref();
-        match val.read_bit_at(bpos) {
-            Some(val) => Ok(val),
-            None => Err(Error::new(
-                ErrorKind::InvalidInput,
-                "Bit position is greater than unit size",
-            )),
-        }
-    }
-
     fn read_bits<U: Unit>(&mut self) -> Result<U> {
         let cpos = self.cur_position();
         let _bpos = self.bit_position();
