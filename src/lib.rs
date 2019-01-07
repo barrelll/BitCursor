@@ -167,6 +167,12 @@ trait SafeSlice<I> {
 
 impl<'a, I> SafeSlice<I> for &'a [I] {
     fn slice(&self, x: usize, y: usize) -> Result<&[I]> {
+        if x > self.len() - 1 {
+            return Err(Error::new(
+                ErrorKind::InvalidInput,
+                format!("slice index starts at {}, but ends at {}", x, self.len()),
+            ));
+        }
         if y > self.len() {
             Err(Error::new(
                 ErrorKind::Other,
@@ -184,6 +190,12 @@ impl<'a, I> SafeSlice<I> for &'a [I] {
 
 impl<'a, I> SafeSlice<I> for &'a mut [I] {
     fn slice(&self, x: usize, y: usize) -> Result<&[I]> {
+        if x > self.len() - 1 {
+            return Err(Error::new(
+                ErrorKind::InvalidInput,
+                format!("slice index starts at {}, but ends at {}", x, self.len()),
+            ));
+        }
         if y > self.len() {
             Err(Error::new(
                 ErrorKind::Other,
@@ -201,6 +213,12 @@ impl<'a, I> SafeSlice<I> for &'a mut [I] {
 
 impl<'a, I> SafeSlice<I> for Vec<I> {
     fn slice(&self, x: usize, y: usize) -> Result<&[I]> {
+        if x > self.len() - 1 {
+            return Err(Error::new(
+                ErrorKind::InvalidInput,
+                format!("slice index starts at {}, but ends at {}", x, self.len()),
+            ));
+        }
         if y > self.len() {
             Err(Error::new(
                 ErrorKind::Other,
@@ -218,6 +236,12 @@ impl<'a, I> SafeSlice<I> for Vec<I> {
 
 impl<'a, I> SafeSlice<I> for &'a Vec<I> {
     fn slice(&self, x: usize, y: usize) -> Result<&[I]> {
+        if x > self.len() - 1 {
+            return Err(Error::new(
+                ErrorKind::InvalidInput,
+                format!("slice index starts at {}, but ends at {}", x, self.len()),
+            ));
+        }
         if y > self.len() {
             Err(Error::new(
                 ErrorKind::Other,
@@ -235,6 +259,12 @@ impl<'a, I> SafeSlice<I> for &'a Vec<I> {
 
 impl<'a, I> SafeSlice<I> for &'a mut Vec<I> {
     fn slice(&self, x: usize, y: usize) -> Result<&[I]> {
+        if x > self.len() - 1 {
+            return Err(Error::new(
+                ErrorKind::InvalidInput,
+                format!("slice index starts at {}, but ends at {}", x, self.len()),
+            ));
+        }
         if y > self.len() {
             Err(Error::new(
                 ErrorKind::Other,
@@ -598,7 +628,31 @@ impl_forcereadbits!(&'a [T], &'a mut [T], Vec<T>, &'a Vec<T>, &'a mut Vec<T>);
 
 impl<'a, T: Unit> ForceReadBits<T> for BitCursor<T> {
     fn force_read_bits<U: Unit>(&mut self) -> Result<U> {
-        return Err(Error::new(ErrorKind::Other, "Not implemented yet"));
+        let cpos = self.cur_position();
+        let bpos = self.bit_position();
+        let ref_size = T::SIZE;
+        let prc_size = U::SIZE;
+        if cpos > 0 {
+            return Err(Error::new(
+                ErrorKind::InvalidInput,
+                "Cursor position is out of range of slice",
+            ));
+        } else {
+            if prc_size > ref_size {
+//                let ret: u128 = 0;
+                return Err(Error::new(
+                    ErrorKind::InvalidInput,
+                    format!("Not enough bits in type {:?}", self.get_ref()),
+                ));
+            } else {
+                let ret = U::unitfrom(
+                    self.get_ref()
+                        .shr(T::unitfrom((ref_size - prc_size - bpos) as u128))
+                        .into_u128(),
+                );
+                Ok(ret)
+            }
+        }
     }
 }
 
