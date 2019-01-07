@@ -780,22 +780,7 @@ impl<'a, T: Unit> Read for BitCursor<$x> {
         )*
     };
 }
-impl_read!(&'a [T], &'a mut [T], Vec<T>, &'a Vec<T>, &'a mut Vec<T>);
-
-impl<'a, T: Unit> Read for BitCursor<T> {
-    fn read(&mut self, buf: &mut [u8]) -> Result<usize> {
-        for i in 0..buf.len() {
-            buf[i] = match self.read_bits::<u8>() {
-                Ok(val) => val,
-                Err(_) => match self.force_read_bits::<u8>() {
-                    Ok(val) => val,
-                    Err(_) => return Ok(i),
-                },
-            }
-        }
-        Ok(buf.len())
-    }
-}
+impl_read!(&'a [T], &'a mut [T], Vec<T>, &'a Vec<T>, &'a mut Vec<T>, T);
 
 macro_rules! impl_bufread {
     ( $( $x:ty),* ) => {
