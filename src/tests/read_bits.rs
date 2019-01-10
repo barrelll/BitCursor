@@ -2,6 +2,22 @@ mod bit {
     use std::io::{Seek, SeekFrom};
     use {BitCursor, ReadBits};
     #[test]
+    fn read_bit_from_single() {
+        let data = false;
+        let mut bcurs = BitCursor::new(data);
+        let r = bcurs.read_bits::<bool>().unwrap();
+        assert_eq!(false, r);
+    }
+
+    #[test]
+    #[should_panic]
+    fn read_u8_from_single_bit() {
+        let data = false;
+        let mut bcurs = BitCursor::new(data);
+        let _ = bcurs.read_bits::<u8>().unwrap();
+    }
+
+    #[test]
     fn read_bit_from_u8s() {
         let data: [u8; 3] = [0b01101010, 0b11110001, 0b01110100];
         let mut bcurs = BitCursor::new(&data[..]);
@@ -129,6 +145,23 @@ mod bit {
 mod u8 {
     use std::io::{Seek, SeekFrom};
     use {BitCursor, ReadBits};
+
+    #[test]
+    fn read_u8_from_single() {
+        let data: u8 = 0b01101010;
+        let mut bcurs = BitCursor::new(data);
+        let r = bcurs.read_bits::<u8>().unwrap();
+        assert_eq!(0b01101010 as u8, r);
+    }
+
+    #[test]
+    #[should_panic]
+    fn read_u16_from_single_u8s() {
+        let data: u8 = 0b01101010;
+        let mut bcurs = BitCursor::new(data);
+        let _ = bcurs.read_bits::<u16>().unwrap();
+    }
+
     #[test]
     fn read_u8_from_u8s() {
         let data: [u8; 3] = [0b01101010, 0b11110001, 0b01110100];
@@ -258,6 +291,23 @@ mod u16 {
     use std::io::{Seek, SeekFrom};
     use {BitCursor, ReadBits};
     #[test]
+    fn read_u16_from_single() {
+        let data: u16 = 0b10001000;
+        let mut bcurs = BitCursor::new(data);
+        let r = bcurs.read_bits::<u16>().unwrap();
+        assert_eq!(0b10001000 as u16, r);
+    }
+
+    #[test]
+    #[should_panic]
+    fn read_u32_from_single() {
+        let data: u16 = 0b10001000;
+        let mut bcurs = BitCursor::new(data);
+        let r = bcurs.read_bits::<u32>().unwrap();
+        assert_eq!(0b10001000 as u32, r);
+    }
+
+    #[test]
     fn read_u16_from_u8s() {
         let data: [u8; 4] = [0b01101010, 0b11110001, 0b01110100, 0b10100001];
         let mut bcurs = BitCursor::new(&data[..]);
@@ -385,6 +435,22 @@ mod u16 {
 mod u32 {
     use std::io::{Seek, SeekFrom};
     use {BitCursor, ReadBits};
+    #[test]
+    fn read_u32_from_single() {
+        let data = 0b1;
+        let mut bcurs = BitCursor::new(data);
+        let r = bcurs.read_bits::<u32>().unwrap();
+        assert_eq!(0b1 as u32, r);
+    }
+
+    #[test]
+    #[should_panic]
+    fn read_u64_from_single() {
+        let data = 0b1;
+        let mut bcurs = BitCursor::new(data);
+        let _ = bcurs.read_bits::<u64>().unwrap();
+    }
+
     #[test]
     fn read_u32_from_u8s() {
         let data: [u8; 6] = [
@@ -527,6 +593,22 @@ mod u32 {
 mod u64 {
     use std::io::{Seek, SeekFrom};
     use {BitCursor, ReadBits};
+    #[test]
+    fn read_u64_from_single() {
+        let data: u64 = 0b1;
+        let mut bcurs = BitCursor::new(data);
+        let r = bcurs.read_bits::<u64>().unwrap();
+        assert_eq!(0b1 as u64, r);
+    }
+
+    #[test]
+    #[should_panic]
+    fn read_u128_from_single() {
+        let data: u64 = 0b1;
+        let mut bcurs = BitCursor::new(data);
+        let _ = bcurs.read_bits::<u128>().unwrap();
+    }
+
     #[test]
     fn read_u64_from_u8s() {
         let data: [u8; 11] = [
@@ -709,6 +791,23 @@ mod u64 {
 mod u128 {
     use std::io::{Seek, SeekFrom};
     use {BitCursor, ReadBits};
+    #[test]
+    fn read_u128_from_single() {
+        let data: u128 = 0b1;
+        let mut bcurs = BitCursor::new(data);
+        let r = bcurs.read_bits::<u128>().unwrap();
+        assert_eq!(0b1 as u128, r);
+    }
+
+    #[test]
+    #[should_panic]
+    fn over_read_from_single() {
+        let data: u128 = 0b1;
+        let mut bcurs = BitCursor::new(data);
+        let _ = bcurs.seek(SeekFrom::Start(2));
+        let _ = bcurs.read_bits::<u128>().unwrap();
+    }
+
     #[test]
     fn read_u128_from_u8s() {
         let data: [u8; 22] = [
