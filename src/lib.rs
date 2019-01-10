@@ -517,7 +517,7 @@ impl<'a, T: Unit> ReadBits<T> for BitCursor<T> {
             if prc_size + bpos > ref_size {
                 return Err(Error::new(
                     ErrorKind::InvalidInput,
-                    format!("Not enough bits in type {:?}", self.get_ref()),
+                    format!("Not enough bits in type u{}", ref_size),
                 ));
             } else {
                 let ret = U::unitfrom(
