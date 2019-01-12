@@ -646,15 +646,11 @@ impl<'a, T: Unit> ForceReadBits<T> for BitCursor<T> {
                         Some(v) => {
                             let _ = self.seek(SeekFrom::Current(prc_size as i64))?;
                             Ok(U::unitfrom(v))
-                        },
+                        }
                         None => {
                             return Err(Error::new(
                                 ErrorKind::Other,
-                                format!(
-                                    "Error shifting {} left, over by {}",
-                                    ref_size,
-                                    bpos
-                                ),
+                                format!("Error shifting {} left, over by {}", ref_size, bpos),
                             ))
                         }
                     }
@@ -663,7 +659,7 @@ impl<'a, T: Unit> ForceReadBits<T> for BitCursor<T> {
                         Some(v) => {
                             let _ = self.seek(SeekFrom::Current(prc_size as i64))?;
                             Ok(U::unitfrom(v))
-                        },
+                        }
                         None => {
                             return Err(Error::new(
                                 ErrorKind::Other,

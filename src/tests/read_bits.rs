@@ -163,6 +163,20 @@ mod u8 {
     }
 
     #[test]
+    fn read_u8_from_bits() {
+        let data: [bool; 24] = [
+            false, true, true, false, true, false, true, false, true, true, true, true, false,
+            false, false, true, false, true, true, true, false, true, false, false,
+        ];
+        let mut bcurs = BitCursor::new(&data[..]);
+        let r = bcurs.read_bits::<u8>().unwrap();
+        assert_eq!(0b01101010 as u8, r);
+        let _ = bcurs.seek(SeekFrom::Start(10));
+        let r = bcurs.read_bits::<u8>().unwrap();
+        assert_eq!(0b11000101 as u8, r);
+    }
+
+    #[test]
     fn read_u8_from_u8s() {
         let data: [u8; 3] = [0b01101010, 0b11110001, 0b01110100];
         let mut bcurs = BitCursor::new(&data[..]);
