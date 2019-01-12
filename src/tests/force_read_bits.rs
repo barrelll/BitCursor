@@ -3,6 +3,17 @@ mod u8 {
     use std::io::{Seek, SeekFrom};
     use {BitCursor, ForceReadBits};
     #[test]
+    fn read_u8_from_single() {
+        let data: u8 = 0b11110000;
+        let mut bcurs = BitCursor::new(data);
+        let r = bcurs.force_read_bits::<u8>().unwrap();
+        assert_eq!(0b11110000 as u8, r);
+        let _ = bcurs.seek(SeekFrom::Start(3));
+        let r = bcurs.force_read_bits::<u8>().unwrap();
+        assert_eq!(10000000 as u8, r);
+    }
+
+    #[test]
     fn read_u8_from_u8s() {
         let data: [u8; 3] = [0b01101010, 0b11110001, 0b01110100];
         let mut bcurs = BitCursor::new(&data[..]);
