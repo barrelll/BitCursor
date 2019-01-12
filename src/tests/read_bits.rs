@@ -342,8 +342,8 @@ mod u16 {
         let r = bcurs.read_bits::<u16>().unwrap();
         assert_eq!(0b0110101011110001 as u16, r);
         let _ = bcurs.seek(SeekFrom::Start(10));
-        let _r = bcurs.read_bits::<u16>().unwrap();
-//        assert_eq!(0b1100010111010000 as u16, r);
+        let r = bcurs.read_bits::<u16>().unwrap();
+        assert_eq!(0b1100010111010000 as u16, r);
     }
 
     #[test]
