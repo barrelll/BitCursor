@@ -638,12 +638,37 @@ impl<'a, T: Unit> ForceReadBits<T> for BitCursor<T> {
                 "Cursor position is out of range of slice",
             ));
         } else {
-            if prc_size >= ref_size {
-                if prc_size + bpos > ref_size {} else {}
-                return Err(Error::new(
-                    ErrorKind::InvalidInput,
-                    format!("Not enough bits in type u{}", ref_size),
-                ));
+            if prc_size + bpos > ref_size {
+                let val = self.get_ref().into_u128();
+                if prc_size == ref_size {
+                    match val.checked_shl(bpos as u32) {
+                        Some(v) => Ok(U::unitfrom(v)),
+                        None => {
+                            return Err(Error::new(
+                                ErrorKind::Other,
+                                format!(
+                                    "Error shifting {} left, over by {}",
+                                    ref_size,
+                                    bpos
+                                ),
+                            ))
+                        }
+                    }
+                } else {
+                    match val.checked_shl((ref_size + bpos) as u32) {
+                        Some(v) => Ok(U::unitfrom(v)),
+                        None => {
+                            return Err(Error::new(
+                                ErrorKind::Other,
+                                format!(
+                                    "Error shifting {} left, over by {}",
+                                    ref_size,
+                                    (ref_size + bpos)
+                                ),
+                            ))
+                        }
+                    }
+                }
             } else {
                 let ret = U::unitfrom(
                     self.get_ref()
