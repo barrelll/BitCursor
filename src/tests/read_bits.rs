@@ -177,6 +177,17 @@ mod u8 {
     }
 
     #[test]
+    #[should_panic]
+    fn read_u8_from_bits_out_of_range() {
+        let data: [bool; 12] = [
+            false, true, true, false, true, false, true, false, true, true, true, true,
+        ];
+        let mut bcurs = BitCursor::new(&data[..]);
+        let _ = bcurs.seek(SeekFrom::Start(10));
+        let _ = bcurs.read_bits::<u8>().unwrap();
+    }
+
+    #[test]
     fn read_u8_from_u8s() {
         let data: [u8; 3] = [0b01101010, 0b11110001, 0b01110100];
         let mut bcurs = BitCursor::new(&data[..]);
