@@ -525,6 +525,7 @@ impl<'a, T: Unit> ReadBits<T> for BitCursor<T> {
                         .shr(T::unitfrom((ref_size - prc_size - bpos) as u128))
                         .into_u128(),
                 );
+                let _ = self.seek(SeekFrom::Current(prc_size as i64))?;
                 Ok(ret)
             }
         }
@@ -642,7 +643,10 @@ impl<'a, T: Unit> ForceReadBits<T> for BitCursor<T> {
                 let val = self.get_ref().into_u128();
                 if prc_size == ref_size {
                     match val.checked_shl(bpos as u32) {
-                        Some(v) => Ok(U::unitfrom(v)),
+                        Some(v) => {
+                            let _ = self.seek(SeekFrom::Current(prc_size as i64))?;
+                            Ok(U::unitfrom(v))
+                        },
                         None => {
                             return Err(Error::new(
                                 ErrorKind::Other,
@@ -656,7 +660,10 @@ impl<'a, T: Unit> ForceReadBits<T> for BitCursor<T> {
                     }
                 } else {
                     match val.checked_shl((ref_size + bpos) as u32) {
-                        Some(v) => Ok(U::unitfrom(v)),
+                        Some(v) => {
+                            let _ = self.seek(SeekFrom::Current(prc_size as i64))?;
+                            Ok(U::unitfrom(v))
+                        },
                         None => {
                             return Err(Error::new(
                                 ErrorKind::Other,
@@ -675,6 +682,7 @@ impl<'a, T: Unit> ForceReadBits<T> for BitCursor<T> {
                         .shr(T::unitfrom((ref_size - prc_size - bpos) as u128))
                         .into_u128(),
                 );
+                let _ = self.seek(SeekFrom::Current(prc_size as i64))?;
                 Ok(ret)
             }
         }

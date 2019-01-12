@@ -142,6 +142,17 @@ mod u16 {
     use std::io::{Seek, SeekFrom};
     use {BitCursor, ForceReadBits};
     #[test]
+    fn read_u16_from_single() {
+        let data: u8 = 0b00010000;
+        let mut bcurs = BitCursor::new(data);
+        let r = bcurs.force_read_bits::<u16>().unwrap();
+        assert_eq!(0b0001000000000000 as u16, r);
+        let _ = bcurs.seek(SeekFrom::Start(3));
+        let r = bcurs.force_read_bits::<u16>().unwrap();
+        assert_eq!(0b1000000000000000 as u16, r);
+    }
+
+    #[test]
     fn read_u16_from_u8s() {
         let data: [u8; 4] = [0b01101010, 0b11110001, 0b01110100, 0b10100001];
         let mut bcurs = BitCursor::new(&data[..]);
