@@ -281,6 +281,17 @@ mod u32 {
     use std::io::{Seek, SeekFrom};
     use {BitCursor, ForceReadBits};
     #[test]
+    fn read_u32_from_single() {
+        let data: u8 = 0b00010000;
+        let mut bcurs = BitCursor::new(data);
+        let r = bcurs.force_read_bits::<u32>().unwrap();
+        assert_eq!(0b0001000000000000 as u32, r);
+        let _ = bcurs.seek(SeekFrom::Start(3));
+        let r = bcurs.force_read_bits::<u32>().unwrap();
+        assert_eq!(0b1000000000000000 as u32, r);
+    }
+
+    #[test]
     fn read_u32_from_u8s() {
         let data: [u8; 6] = [
             0b01101010, 0b11110001, 0b01110100, 0b10100001, 0b11100011, 0b11000000,
@@ -424,6 +435,17 @@ mod u32 {
 mod u64 {
     use std::io::{Seek, SeekFrom};
     use {BitCursor, ForceReadBits};
+    #[test]
+    fn read_u64_from_single() {
+        let data: u8 = 0b00010000;
+        let mut bcurs = BitCursor::new(data);
+        let r = bcurs.force_read_bits::<u64>().unwrap();
+        assert_eq!(0b0001000000000000 as u64, r);
+        let _ = bcurs.seek(SeekFrom::Start(3));
+        let r = bcurs.force_read_bits::<u64>().unwrap();
+        assert_eq!(0b1000000000000000 as u64, r);
+    }
+
     #[test]
     fn read_u64_from_u8s() {
         let data: [u8; 11] = [
@@ -621,6 +643,17 @@ mod u64 {
 mod u128 {
     use std::io::{Seek, SeekFrom};
     use {BitCursor, ForceReadBits};
+    #[test]
+    fn read_u128_from_single() {
+        let data: u8 = 0b00010000;
+        let mut bcurs = BitCursor::new(data);
+        let r = bcurs.force_read_bits::<u128>().unwrap();
+        assert_eq!(0b0001000000000000 as u128, r);
+        let _ = bcurs.seek(SeekFrom::Start(3));
+        let r = bcurs.force_read_bits::<u128>().unwrap();
+        assert_eq!(0b1000000000000000 as u128, r);
+    }
+
     #[test]
     fn read_u128_from_u8s() {
         let data: [u8; 22] = [
