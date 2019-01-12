@@ -157,7 +157,7 @@ mod u8 {
     #[test]
     #[should_panic]
     fn over_read_from_single() {
-        let data: u8 = 0b01101010;
+        let data: bool = false;
         let mut bcurs = BitCursor::new(data);
         let _ = bcurs.read_bits::<u8>().unwrap();
     }
@@ -446,7 +446,7 @@ mod u32 {
     #[test]
     #[should_panic]
     fn over_read_from_single() {
-        let data = 0b1;
+        let data: u8 = 0b1;
         let mut bcurs = BitCursor::new(data);
         let _ = bcurs.read_bits::<u32>().unwrap();
     }
@@ -604,7 +604,7 @@ mod u64 {
     #[test]
     #[should_panic]
     fn over_read_from_single() {
-        let data: u64 = 0b1;
+        let data: u32 = 0b1;
         let mut bcurs = BitCursor::new(data);
         let _ = bcurs.read_bits::<u64>().unwrap();
     }
