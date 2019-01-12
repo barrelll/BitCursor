@@ -11,7 +11,7 @@ mod bit {
 
     #[test]
     #[should_panic]
-    fn read_u8_from_single_bit() {
+    fn over_read_from_single() {
         let data = false;
         let mut bcurs = BitCursor::new(data);
         let _ = bcurs.read_bits::<u8>().unwrap();
@@ -130,7 +130,7 @@ mod bit {
 
     #[test]
     #[should_panic]
-    fn read_u8_from_u128s_out_of_range() {
+    fn read_bit_from_u128s_out_of_range() {
         let data: [u128; 3] = [
             0b10010010001001011000100001101011100100100010010110001000011010101001001000100101100010000110101110010010001001011000100001101010,
             0b10010010001001011000100001101011100100100010010110001000011010101001001000100101100010000110101010010010001001011000100001101010,
@@ -156,10 +156,10 @@ mod u8 {
 
     #[test]
     #[should_panic]
-    fn read_u16_from_single_u8s() {
+    fn over_read_from_single() {
         let data: u8 = 0b01101010;
         let mut bcurs = BitCursor::new(data);
-        let _ = bcurs.read_bits::<u16>().unwrap();
+        let _ = bcurs.read_bits::<u8>().unwrap();
     }
 
     #[test]
@@ -300,7 +300,7 @@ mod u16 {
 
     #[test]
     #[should_panic]
-    fn read_u32_from_single() {
+    fn over_read_from_single() {
         let data: u16 = 0b10001000;
         let mut bcurs = BitCursor::new(data);
         let r = bcurs.read_bits::<u32>().unwrap();
@@ -445,10 +445,10 @@ mod u32 {
 
     #[test]
     #[should_panic]
-    fn read_u64_from_single() {
+    fn over_read_from_single() {
         let data = 0b1;
         let mut bcurs = BitCursor::new(data);
-        let _ = bcurs.read_bits::<u64>().unwrap();
+        let _ = bcurs.read_bits::<u32>().unwrap();
     }
 
     #[test]
@@ -603,10 +603,10 @@ mod u64 {
 
     #[test]
     #[should_panic]
-    fn read_u128_from_single() {
+    fn over_read_from_single() {
         let data: u64 = 0b1;
         let mut bcurs = BitCursor::new(data);
-        let _ = bcurs.read_bits::<u128>().unwrap();
+        let _ = bcurs.read_bits::<u64>().unwrap();
     }
 
     #[test]
