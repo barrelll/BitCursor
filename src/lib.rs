@@ -546,13 +546,14 @@ impl<'a, T: Unit> ForceReadBits<T> for BitCursor<$x> {
         let bpos = self.bit_position();
         let ref_size = T::SIZE;
         let prc_size = U::SIZE;
+        let slice_add = if ref_size == 1 { 0 } else { 1 };
         let overlap = ((bpos + prc_size) / ref_size) as usize;
         if overlap > 0 && ((bpos + prc_size) % 8 != 0) || prc_size > ref_size {
             if ref_size >= prc_size {
                 let mut ret = T::unitfrom(0);
                 for (enumueration, val) in self
                     .get_ref()
-                    .force_slice(cpos, cpos + overlap + 1)?
+                    .force_slice(cpos, cpos + overlap + slice_add)?
                     .iter()
                     .enumerate()
                 {
@@ -579,7 +580,7 @@ impl<'a, T: Unit> ForceReadBits<T> for BitCursor<$x> {
                 let mut ret = U::unitfrom(0);
                 for (enumueration, val) in self
                     .get_ref()
-                    .force_slice(cpos, cpos + overlap + 1)?
+                    .force_slice(cpos, cpos + overlap + slice_add)?
                     .iter()
                     .enumerate()
                 {
