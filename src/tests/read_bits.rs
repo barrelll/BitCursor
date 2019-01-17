@@ -688,6 +688,36 @@ mod u64 {
     }
 
     #[test]
+    fn read_u64_from_bits() {
+        let data: [bool; 78] = [
+            false, true, true, false, true, false, true, false, true, true, true, true, false,
+            false, false, true, false, true, true, true, false, true, false, false, false, false,
+            false, false, true, false, true, true, true, false, true, false, false, false, false,
+            false, false, true, false, true, true, true, false, true, false, false, false, false,
+            false, false, true, false, true, true, true, false, true, false, false, false, false,
+            false, false, true, false, true, true, true, false, true, false, false, false, false,
+        ];
+
+        let mut bcurs = BitCursor::new(&data[..]);
+        let r = bcurs.read_bits::<u64>().unwrap();
+        assert_eq!(0b0110101011110001011101000000101110100000010111010000001011101000 as u64, r);
+        let _ = bcurs.seek(SeekFrom::Start(10));
+        let r = bcurs.read_bits::<u64>().unwrap();
+        assert_eq!(0b1100010111010000001011101000000101110100000010111010000001011101 as u64, r);
+    }
+
+    #[test]
+    #[should_panic]
+    fn read_u64_from_bits_out_of_range() {
+        let data: [bool; 12] = [
+            false, true, true, false, true, false, true, false, true, true, true, true,
+        ];
+        let mut bcurs = BitCursor::new(&data[..]);
+        let _ = bcurs.seek(SeekFrom::Start(10));
+        let _ = bcurs.read_bits::<u64>().unwrap();
+    }
+
+    #[test]
     fn read_u64_from_u8s() {
         let data: [u8; 11] = [
             0b01101010, 0b11110001, 0b01110100, 0b10100001, 0b11100011, 0b11000000, 0b11110001,
