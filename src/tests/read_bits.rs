@@ -916,6 +916,42 @@ mod u128 {
         let _ = bcurs.read_bits::<u128>().unwrap();
     }
 
+        #[test]
+    fn read_u128_from_bits() {
+        let data: [bool; 156] = [
+            false, true, true, false, true, false, true, false, true, true, true, true, false,
+            false, false, true, false, true, true, true, false, true, false, false, false, false,
+            false, false, true, false, true, true, true, false, true, false, false, false, false,
+            false, false, true, false, true, true, true, false, true, false, false, false, false,
+            false, false, true, false, true, true, true, false, true, false, false, false, false,
+            false, false, true, false, true, true, true, false, true, false, false, false, false,
+            false, false, true, false, true, true, true, false, true, false, false, false, false,
+            false, false, true, false, true, true, true, false, true, false, false, false, false,
+            false, false, true, false, true, true, true, false, true, false, false, false, false,
+            false, false, true, false, true, true, true, false, true, false, false, false, false,
+            false, false, true, false, true, true, true, false, true, false, false, false, false,
+            false, false, true, false, true, true, true, false, true, false, false, false, false,
+        ];
+
+        let mut bcurs = BitCursor::new(&data[..]);
+        let r = bcurs.read_bits::<u128>().unwrap();
+        assert_eq!(0b01101010111100010111010000001011101000000101110100000010111010000001011101000000101110100000010111010000001011101000000101110100 as u128, r);
+        let _ = bcurs.seek(SeekFrom::Start(10));
+        let r = bcurs.read_bits::<u128>().unwrap();
+        assert_eq!(0b11000101110100000010111010000001011101000000101110100000010111010000001011101000000101110100000010111010000001011101000000101110 as u128, r);
+    }
+
+    #[test]
+    #[should_panic]
+    fn read_u128_from_bits_out_of_range() {
+        let data: [bool; 12] = [
+            false, true, true, false, true, false, true, false, true, true, true, true,
+        ];
+        let mut bcurs = BitCursor::new(&data[..]);
+        let _ = bcurs.seek(SeekFrom::Start(10));
+        let _ = bcurs.read_bits::<u128>().unwrap();
+    }
+
     #[test]
     fn read_u128_from_u8s() {
         let data: [u8; 22] = [
