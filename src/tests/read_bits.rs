@@ -502,6 +502,34 @@ mod u32 {
     }
 
     #[test]
+    fn read_u32_from_bits() {
+        let data: [bool; 52] = [
+            false, true, true, false, true, false, true, false, true, true, true, true, false,
+            false, false, true, false, true, true, true, false, true, false, false, false, false,
+            false, false, true, false, true, true, true, false, true, false, false, false, false,
+            false, false, true, false, true, true, true, false, true, false, false, false, false,
+        ];
+
+        let mut bcurs = BitCursor::new(&data[..]);
+        let r = bcurs.read_bits::<u32>().unwrap();
+        assert_eq!(0b01101010111100010111010000001011 as u32, r);
+        let _ = bcurs.seek(SeekFrom::Start(10));
+        let r = bcurs.read_bits::<u32>().unwrap();
+        assert_eq!(0b11000101110100000010111010000001 as u32, r);
+    }
+
+    #[test]
+    #[should_panic]
+    fn read_u32_from_bits_out_of_range() {
+        let data: [bool; 12] = [
+            false, true, true, false, true, false, true, false, true, true, true, true,
+        ];
+        let mut bcurs = BitCursor::new(&data[..]);
+        let _ = bcurs.seek(SeekFrom::Start(10));
+        let _ = bcurs.read_bits::<u32>().unwrap();
+    }
+
+    #[test]
     fn read_u32_from_u8s() {
         let data: [u8; 6] = [
             0b01101010, 0b11110001, 0b01110100, 0b10100001, 0b11100011, 0b11000000,
