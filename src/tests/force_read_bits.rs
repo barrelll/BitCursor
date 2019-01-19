@@ -4,13 +4,22 @@ mod u8 {
     use {BitCursor, ForceReadBits};
     #[test]
     fn read_u8_from_single() {
-        let data: u8 = 0b11110000;
+        let data: u64 = 0b1001001000100101100010000110101110010010001001011000100001101010;
         let mut bcurs = BitCursor::new(data);
         let r = bcurs.force_read_bits::<u8>().unwrap();
-        assert_eq!(0b11110000 as u8, r);
+        assert_eq!(0b10010010 as u8, r);
         let _ = bcurs.seek(SeekFrom::Start(3));
         let r = bcurs.force_read_bits::<u8>().unwrap();
-        assert_eq!(10000000 as u8, r);
+        assert_eq!(0b10010001 as u8, r);
+    }
+
+    #[test]
+    fn read_u8_from_single_out_of_range() {
+        let data: u64 = 0b1001001000100101100010000110101110010010001001011000100001101010;
+        let mut bcurs = BitCursor::new(data);
+        let _ = bcurs.seek(SeekFrom::Start(64 - 7));
+        let r = bcurs.force_read_bits::<u8>().unwrap();
+        assert_eq!(0b11010100 as u8, r);
     }
 
     #[test]
@@ -285,10 +294,10 @@ mod u32 {
         let data: u8 = 0b00010000;
         let mut bcurs = BitCursor::new(data);
         let r = bcurs.force_read_bits::<u32>().unwrap();
-        assert_eq!(0b0001000000000000 as u32, r);
+        assert_eq!(0b00010000000000000000000000000000 as u32, r);
         let _ = bcurs.seek(SeekFrom::Start(3));
         let r = bcurs.force_read_bits::<u32>().unwrap();
-        assert_eq!(0b1000000000000000 as u32, r);
+        assert_eq!(0b10000000000000000000000000000000 as u32, r);
     }
 
     #[test]
@@ -440,10 +449,16 @@ mod u64 {
         let data: u8 = 0b00010000;
         let mut bcurs = BitCursor::new(data);
         let r = bcurs.force_read_bits::<u64>().unwrap();
-        assert_eq!(0b0001000000000000 as u64, r);
+        assert_eq!(
+            0b0001000000000000000000000000000000000000000000000000000000000000 as u64,
+            r
+        );
         let _ = bcurs.seek(SeekFrom::Start(3));
         let r = bcurs.force_read_bits::<u64>().unwrap();
-        assert_eq!(0b1000000000000000 as u64, r);
+        assert_eq!(
+            0b1000000000000000000000000000000000000000000000000000000000000000 as u64,
+            r
+        );
     }
 
     #[test]
@@ -648,10 +663,11 @@ mod u128 {
         let data: u8 = 0b00010000;
         let mut bcurs = BitCursor::new(data);
         let r = bcurs.force_read_bits::<u128>().unwrap();
-        assert_eq!(0b0001000000000000 as u128, r);
+        assert_eq!(0b00010000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000 as u128, r);
         let _ = bcurs.seek(SeekFrom::Start(3));
         let r = bcurs.force_read_bits::<u128>().unwrap();
-        assert_eq!(0b1000000000000000 as u128, r);
+        println!("{:#130b}", r);
+        assert_eq!(0b10000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000 as u128, r);
     }
 
     #[test]

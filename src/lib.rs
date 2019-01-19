@@ -641,37 +641,31 @@ impl<'a, T: Unit> ForceReadBits<T> for BitCursor<T> {
                 "Cursor position is out of range",
             ));
         } else {
-            if prc_size + bpos > ref_size {
-                let val = self.get_ref().into_u128();
-                if prc_size == ref_size {
-                    match val.checked_shl(bpos as u32) {
-                        Some(v) => {
-                            let _ = self.seek(SeekFrom::Current(prc_size as i64))?;
-                            Ok(U::unitfrom(v))
-                        }
-                        None => {
-                            return Err(Error::new(
-                                ErrorKind::Other,
-                                format!("Error shifting {} left, over by {}", ref_size, bpos),
-                            ))
-                        }
+            if prc_size + bpos >= ref_size {
+                if ref_size >= prc_size {
+                    let mut ret = T::unitfrom(0);
+                    {
+                        let val = self.get_ref();
+                        let shifted = val.shl(T::unitfrom(bpos as u128));
+                        ret |= shifted;
+                    }
+                    let _ = self.seek(SeekFrom::Current(prc_size as i64))?;
+                    match ref_size.checked_sub(prc_size) {
+                        Some(sub) => Ok(U::unitfrom(ret.shr(T::unitfrom(sub as u128)).into_u128())),
+                        None => Ok(U::unitfrom(ret.into_u128())),
                     }
                 } else {
-                    match val.checked_shl((ref_size + bpos) as u32) {
-                        Some(v) => {
-                            let _ = self.seek(SeekFrom::Current(prc_size as i64))?;
-                            Ok(U::unitfrom(v))
-                        }
-                        None => {
-                            return Err(Error::new(
-                                ErrorKind::Other,
-                                format!(
-                                    "Error shifting {} left, over by {}",
-                                    ref_size,
-                                    (ref_size + bpos)
-                                ),
-                            ))
-                        }
+                    let mut ret = U::unitfrom(0);
+                    {
+                        let val = U::unitfrom(self.get_ref().into_u128())
+                            .shl(U::unitfrom((prc_size - ref_size) as u128));
+                        let shifted = val.shl(U::unitfrom(bpos as u128));
+                        ret |= U::unitfrom(shifted.into_u128());
+                    }
+                    let _ = self.seek(SeekFrom::Current(prc_size as i64))?;
+                    match ref_size.checked_sub(prc_size) {
+                        Some(sub) => Ok(ret.shr(U::unitfrom(sub as u128))),
+                        None => Ok(ret),
                     }
                 }
             } else {
