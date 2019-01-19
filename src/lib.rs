@@ -512,7 +512,7 @@ impl<'a, T: Unit> ReadBits<T> for BitCursor<T> {
         if cpos > 0 {
             return Err(Error::new(
                 ErrorKind::InvalidInput,
-                "Cursor position is out of range of slice",
+                "Cursor position is out of range",
             ));
         } else {
             if prc_size + bpos > ref_size {
@@ -638,7 +638,7 @@ impl<'a, T: Unit> ForceReadBits<T> for BitCursor<T> {
         if cpos > 0 {
             return Err(Error::new(
                 ErrorKind::InvalidInput,
-                "Cursor position is out of range of slice",
+                "Cursor position is out of range",
             ));
         } else {
             if prc_size + bpos > ref_size {
