@@ -162,6 +162,15 @@ mod u16 {
     }
 
     #[test]
+    fn read_u16_from_single_out_of_range() {
+        let data: u64 = 0b1001001000100101100010000110101110010010001001011000100001101010;
+        let mut bcurs = BitCursor::new(data);
+        let _ = bcurs.seek(SeekFrom::Start(64 - 15));
+        let r = bcurs.force_read_bits::<u16>().unwrap();
+        assert_eq!(0b0001000011010100 as u16, r);
+    }
+
+    #[test]
     fn read_u16_from_u8s() {
         let data: [u8; 4] = [0b01101010, 0b11110001, 0b01110100, 0b10100001];
         let mut bcurs = BitCursor::new(&data[..]);
@@ -298,6 +307,15 @@ mod u32 {
         let _ = bcurs.seek(SeekFrom::Start(3));
         let r = bcurs.force_read_bits::<u32>().unwrap();
         assert_eq!(0b10000000000000000000000000000000 as u32, r);
+    }
+
+    #[test]
+    fn read_u32_from_single_out_of_range() {
+        let data: u64 = 0b1001001000100101100010000110101110010010001001011000100001101010;
+        let mut bcurs = BitCursor::new(data);
+        let _ = bcurs.seek(SeekFrom::Start(64 - 31));
+        let r = bcurs.force_read_bits::<u32>().unwrap();
+        assert_eq!(0b00100100010010110001000011010100 as u32, r);
     }
 
     #[test]
@@ -459,6 +477,15 @@ mod u64 {
             0b1000000000000000000000000000000000000000000000000000000000000000 as u64,
             r
         );
+    }
+
+    #[test]
+    fn read_u64_from_single_out_of_range() {
+        let data: u64 = 0b1001001000100101100010000110101110010010001001011000100001101010;
+        let mut bcurs = BitCursor::new(data);
+        let _ = bcurs.seek(SeekFrom::Start(1));
+        let r = bcurs.force_read_bits::<u64>().unwrap();
+        assert_eq!(0b0010010001001011000100001101011100100100010010110001000011010100 as u64, r);
     }
 
     #[test]
@@ -668,6 +695,15 @@ mod u128 {
         let r = bcurs.force_read_bits::<u128>().unwrap();
         println!("{:#130b}", r);
         assert_eq!(0b10000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000 as u128, r);
+    }
+
+    #[test]
+    fn read_u128_from_single_out_of_range() {
+        let data: u128 = 0b10010010001001011000100001101011100100100010010110001000011010101001001000100101100010000110101110010010001001011000100001101010;
+        let mut bcurs = BitCursor::new(data);
+        let _ = bcurs.seek(SeekFrom::Start(1));
+        let r = bcurs.force_read_bits::<u128>().unwrap();
+        assert_eq!(0b00100100010010110001000011010111001001000100101100010000110101010010010001001011000100001101011100100100010010110001000011010100 as u128, r);
     }
 
     #[test]
