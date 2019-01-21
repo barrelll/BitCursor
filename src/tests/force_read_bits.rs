@@ -707,7 +707,10 @@ mod u64 {
         let mut bcurs = BitCursor::new(data);
         let _ = bcurs.seek(SeekFrom::Start(1));
         let r = bcurs.force_read_bits::<u64>().unwrap();
-        assert_eq!(0b0010010001001011000100001101011100100100010010110001000011010100 as u64, r);
+        assert_eq!(
+            0b0010010001001011000100001101011100100100010010110001000011010100 as u64,
+            r
+        );
     }
 
     #[test]
@@ -743,7 +746,10 @@ mod u64 {
         let mut bcurs = BitCursor::new(&data[..]);
         let _ = bcurs.seek(SeekFrom::Start(10));
         let r = bcurs.force_read_bits::<u64>().unwrap();
-        assert_eq!(0b1100000000000000000000000000000000000000000000000000000000000000 as u64, r);
+        assert_eq!(
+            0b1100000000000000000000000000000000000000000000000000000000000000 as u64,
+            r
+        );
     }
 
     #[test]
@@ -997,7 +1003,7 @@ mod u128 {
         let mut bcurs = BitCursor::new(&data[..]);
         let _ = bcurs.seek(SeekFrom::Start(10));
         let r = bcurs.force_read_bits::<u128>().unwrap();
-         assert_eq!(0b11000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000 as u128, r);
+        assert_eq!(0b11000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000 as u128, r);
     }
 
     #[test]
