@@ -364,6 +364,36 @@ impl<'a, I> ForceSlice<I> for &'a mut Vec<I> {
     }
 }
 
+/// A 'BitCursor' wraps an in memory buffer and provides it with a [`Seek`] implementation
+/// provided that memory buffer impls the Unit trait
+///
+/// 'BitCursors' are used in memory buffers, any slice with types implementing Unit,
+/// to allow it to read/write sizes of whatever unit implementation you pass in,
+/// starting from the current bit position
+///
+/// It has implementations for some standard library traits such as
+/// ['Seek']
+/// ['Read']
+/// ['Write']
+/// ['BufRead']
+///
+/// #Examples
+/// ```no_run
+/// use std::io::{Read, Seek, SeekFrom};
+/// use BitCursor;
+/// fn read_from_bits() {
+///     let data = [
+///         false, true, true, false, true, false, true, false, true, true, true, true, false,
+///         false, false, true, false, true, true, true, false, true, false, false,
+///     ];
+///     let mut bcurs = BitCursor::new(&data[..]);
+///     let _ = bcurs.seek(SeekFrom::Start(13));
+///     let mut buf = vec![0, 0, 0, 0];
+///     let amt = bcurs.read(&mut buf).unwrap();
+///     assert_eq!(2, amt);
+///     assert_eq!(vec![46, 128, 0, 0], Vec::from(buf))
+/// }
+/// ```
 #[derive(Debug, Clone)]
 pub struct BitCursor<T> {
     bit_pos: u8,
