@@ -1,4 +1,3 @@
-#![allow(overflowing_literals)]
 mod bit {
     use std::io::{Seek, SeekFrom};
     use {BitCursor, ForceReadBits};
