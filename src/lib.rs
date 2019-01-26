@@ -401,6 +401,20 @@ pub struct BitCursor<T> {
 }
 
 impl<T> BitCursor<T> {
+    /// Creates a new BitCursor wrapping the provided underlying in-memory buffer.
+    ///
+    /// Initial position for the bitcursor's unit cursor is 0, similarly the bit position will start at 0
+    /// Similarly to std::io::Cursor writing to the Bitcursor starts with overwriting vector content, not appending it!
+    ///
+    /// #Examples
+    ///
+    /// ```no_run
+    /// use BitCursor;
+    ///
+    /// let buff = BitCursor::new(Vec::new());
+    /// # fn force_inference(_: &BitCursor<Vec<u8>>) {}
+    /// # force_inference(&buff);
+    /// ```
     pub fn new(data: T) -> BitCursor<T> {
         BitCursor {
             bit_pos: 0,
@@ -408,6 +422,17 @@ impl<T> BitCursor<T> {
         }
     }
 
+    /// Consumes the BitCursor, returning the underlying value.
+    ///
+    /// #Examples
+    ///
+    /// ```no_run
+    /// use BitCursor;
+    ///
+    /// let buff = BitCursor::new(Vec::new());
+    /// # fn force_inference(_: &BitCursor<Vec<u8>>) {}
+    /// # force_inference(&buff);
+    /// ```
     pub fn into_inner(self) -> T {
         self.cursor.into_inner()
     }
