@@ -377,7 +377,7 @@ impl<'a, I> ForceSlice<I> for &'a mut Vec<I> {
 /// ['Write']
 /// ['BufRead']
 ///
-/// #Examples
+/// # Examples
 /// ```no_run
 /// use std::io::{Read, Seek, SeekFrom};
 /// use BitCursor;
@@ -406,7 +406,7 @@ impl<T> BitCursor<T> {
     /// Initial position for the bitcursor's unit cursor is 0, similarly the bit position will start at 0
     /// Similarly to std::io::Cursor writing to the Bitcursor starts with overwriting vector content, not appending it!
     ///
-    /// #Examples
+    /// # Examples
     ///
     /// ```no_run
     /// use BitCursor;
@@ -424,7 +424,7 @@ impl<T> BitCursor<T> {
 
     /// Consumes the BitCursor, returning the underlying value.
     ///
-    /// #Examples
+    /// # Examples
     ///
     /// ```no_run
     /// use BitCursor;
@@ -437,6 +437,19 @@ impl<T> BitCursor<T> {
         self.cursor.into_inner()
     }
 
+    /// Get a reference to the underlying value in this BitCursor
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use BitCursor;
+    ///
+    /// let buff = BitCursor::new(Vec::new());
+    /// # fn force_inference(_: &BitCursor<Vec<u8>>) {}
+    /// # force_inference(&buff);
+    ///
+    /// let reference = buff.get_ref();
+    /// ```
     pub fn get_ref(&self) -> &T {
         self.cursor.get_ref()
     }
