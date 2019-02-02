@@ -474,10 +474,48 @@ impl<T> BitCursor<T> {
         self.cursor.get_mut()
     }
 
+    /// Returns the current position of this BitCursor.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use BitCursor;
+    /// use std::io::prelude::*;
+    /// use std::io::SeekFrom;
+    ///
+    /// let mut buff: BitCursor<Vec<u8>> = BitCursor::new(vec![1, 2, 3, 4, 5]);
+    ///
+    /// assert_eq!(buff.cur_position(), 0);
+    ///
+    /// buff.seek(SeekFrom::Current(16)).unwrap();
+    /// assert_eq!(buff.cur_position(), 2);
+    ///
+    /// buff.seek(SeekFrom::Current(-1)).unwrap();
+    /// assert_eq!(buff.cur_position(), 1);
+    /// ```
     pub fn cur_position(&self) -> u64 {
         self.cursor.position()
     }
 
+    /// Returns the current bit position of this BitCursor.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use BitCursor;
+    /// use std::io::prelude::*;
+    /// use std::io::SeekFrom;
+    ///
+    /// let mut buff: BitCursor<Vec<u8>> = BitCursor::new(vec![1, 2, 3, 4, 5]);
+    ///
+    /// assert_eq!(buff.bit_position(), 0);
+    ///
+    /// buff.seek(SeekFrom::Current(16)).unwrap();
+    /// assert_eq!(buff.bit_position(), 0);
+    ///
+    /// buff.seek(SeekFrom::Current(-1)).unwrap();
+    /// assert_eq!(buff.bit_position(), 7);
+    /// ```
     pub fn bit_position(&self) -> u8 {
         self.bit_pos
     }
