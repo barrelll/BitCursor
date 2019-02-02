@@ -454,6 +454,22 @@ impl<T> BitCursor<T> {
         self.cursor.get_ref()
     }
 
+    /// Gets a mutable reference to the underlying value in this BitCursor.
+    ///
+    /// Care should be taken to avoid modifying the internal I/O state of the
+    /// underlying value as it may corrupt this cursor's position.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use BitCursor;
+    ///
+    /// let mut buff = BitCursor::new(Vec::new());
+    /// # fn force_inference(_: &BitCursor<Vec<u8>>) {}
+    /// # force_inference(&buff);
+    ///
+    /// let reference = buff.get_mut();
+    /// ```
     pub fn get_mut(&mut self) -> &mut T {
         self.cursor.get_mut()
     }
