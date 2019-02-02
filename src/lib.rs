@@ -520,10 +520,49 @@ impl<T> BitCursor<T> {
         self.bit_pos
     }
 
+    /// Sets the bit position of this BitCursor.
+    /// does not wrap to the size of the Unit type
+    /// also allows going over the length of the BitCursor
+    /// it's recommended to use std::io::Seek
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use BitCursor;
+    ///
+    /// let mut buff: BitCursor<Vec<u8>> = BitCursor::new(vec![1, 2, 3, 4, 5]);
+    ///
+    /// assert_eq!(buff.position(), 0);
+    ///
+    /// buff.set_bit_pos(2);
+    /// assert_eq!(buff.bit_position(), 2);
+    ///
+    /// buff.set_bit_pos(4);
+    /// assert_eq!(buff.bit_position(), 4);
+    /// ```
     pub fn set_bit_pos(&mut self, new: u8) {
         self.bit_pos = new;
     }
 
+    /// Sets the position of this BitCursor.
+    /// also allows going over the length of the BitCursor
+    /// it's recommended to use std::io::Seek
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use BitCursor;
+    ///
+    /// let mut buff: BitCursor<Vec<u8>> = BitCursor::new(vec![1, 2, 3, 4, 5]);
+    ///
+    /// assert_eq!(buff.cur_position(), 0);
+    ///
+    /// buff.set_cur_pos(2);
+    /// assert_eq!(buff.cur_position(), 2);
+    ///
+    /// buff.set_cur_pos(4);
+    /// assert_eq!(buff.cur_position(), 4);
+    /// ```
     pub fn set_cur_pos(&mut self, new: u64) {
         self.cursor.set_position(new);
     }
