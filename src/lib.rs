@@ -568,6 +568,42 @@ impl<T> BitCursor<T> {
     }
 }
 
+/// The 'ReadBits' trait allows reading bits of size unit (bool, u8, u32, etc.), at the given bit/cursor position
+///
+/// Implementors of 'ReadBits' are defined by one required method, ['read_bits'].
+/// Each call to ['read_bits'] will attempt to read bits of size unit from the source,
+/// given the source has enough bits for the unit size, otherwise it returns an Err value
+///
+/// Note: If the intended use is to grab each byte (size u8), Using an implementor of 'BufRead' will be more efficient.
+///
+/// # Examples
+///
+/// ``` no_run
+/// use {BitCursor, ReadBits};
+/// use std::io::Seek;
+/// use std::io::SeekFrom;
+///
+/// fn main() -> std::io::Result<()> {
+///         let data: [u8; 22] = [
+///            0b01101010, 0b11110001, 0b01110100, 0b10100001, 0b11100011, 0b11000000, 0b11110001,
+///            0b01110100, 0b10100001, 0b11100011, 0b11000000, 0b01101010, 0b11110001, 0b01110100,
+///            0b10100001, 0b11100011, 0b11000000, 0b11110001, 0b01110100, 0b10100001, 0b11100011,
+///            0b11000000,
+///         ];
+///         let mut bcurs = BitCursor::new(&data[..]);
+///         let r = bcurs.read_bits::<u128>().unwrap();
+///         assert_eq!(
+///            0b01101010111100010111010010100001111000111100000011110001011101001010000111100011110000000110101011110001011101001010000111100011 as u128,
+///            r
+///         );
+///         let _ = bcurs.seek(SeekFrom::Start(10));
+///         let r = bcurs.read_bits::<u128>().unwrap();
+///         assert_eq!(
+///            0b11000101110100101000011110001111000000111100010111010010100001111000111100000001101010111100010111010010100001111000111100000011 as u128,
+///            r
+///         );
+///         Ok(())
+/// }
 pub trait ReadBits<T> {
     fn read_bits<U: Unit>(&mut self) -> Result<U>;
 }
