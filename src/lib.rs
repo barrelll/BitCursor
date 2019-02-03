@@ -571,8 +571,8 @@ impl<T> BitCursor<T> {
 /// The 'ReadBits' trait allows reading bits of size unit (bool, u8, u32, etc.), at the given bit/cursor position
 ///
 /// Implementors of 'ReadBits' are defined by one required method, ['read_bits'].
-/// Each call to ['read_bits'] will attempt to read bits of size unit from the source,
-/// given the source has enough bits for the unit size, otherwise it returns an Err value
+/// Each call to ['read_bits'] will attempt to read bits of unit size from the source,
+/// given the source has enough bits for the unit size, otherwise it returns an Error value
 ///
 /// Note: If the intended use is to grab each byte (size u8), Using an implementor of 'BufRead' will be more efficient.
 ///
