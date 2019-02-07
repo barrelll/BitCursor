@@ -805,6 +805,7 @@ impl<'a, T: Unit> ReadBits<T> for BitCursor<T> {
 ///     let _ = bcurs.seek(SeekFrom::Start(10));
 ///     let r = bcurs.force_read_bits::<u8>().unwrap();
 ///     assert_eq!(0b11000101 as u8, r);
+///     Ok(())
 /// }
 /// ```
 ///
@@ -814,7 +815,7 @@ impl<'a, T: Unit> ReadBits<T> for BitCursor<T> {
 /// use {BitCursor, ForceReadBits};
 /// use std::io::Seek;
 /// use std::io::SeekFrom;
-/// fn read_u16_from_u128s_out_of_range() {
+/// fn main() -> std::io::Result<()> {
 ///     let data: [u128; 3] = [
 ///         0b10010010001001011000100001101011100100100010010110001000011010101001001000100101100010000110101110010010001001011000100001101010,
 ///         0b10010010001001011000100001101011100100100010010110001000011010101001001000100101100010000110101010010010001001011000100001101010,
@@ -824,9 +825,31 @@ impl<'a, T: Unit> ReadBits<T> for BitCursor<T> {
 ///     let _ = bcurs.seek(SeekFrom::Start(((3 * 128) as i32 - 15) as u64));
 ///     let r = bcurs.force_read_bits::<u16>().unwrap();
 ///     assert_eq!(0b0001000011010100 as u16, r);
+///     Ok(())
 /// }
 /// ```
 pub trait ForceReadBits<T> {
+    /// Read the bits of size <T: Unit> starting from the bit position of the cursor
+    ///
+    /// # Example
+    ///
+    /// Read a u32 from bit's without enough to fill a u32
+    ///
+    /// ```no_run
+    /// use {BitCursor, ForceReadBits};
+    /// use std::io::Seek;
+    /// use std::io::SeekFrom;
+    /// fn main() -> Result<()> {
+    ///     let data: [bool; 12] = [
+    ///         false, true, true, false, true, false, true, false, true, true, true, true,
+    ///     ];
+    ///     let mut bcurs = BitCursor::new(&data[..]);
+    ///     let _ = bcurs.seek(SeekFrom::Start(10));
+    ///     let r = bcurs.force_read_bits::<u32>().unwrap();
+    ///     assert_eq!(0b11000000000000000000000000000000 as u32, r);
+    ///     Ok(())
+    /// }
+    /// ```
     fn force_read_bits<U: Unit>(&mut self) -> Result<U>;
 }
 
