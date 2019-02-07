@@ -775,7 +775,57 @@ impl<'a, T: Unit> ReadBits<T> for BitCursor<T> {
         }
     }
 }
-
+/// The 'ForceReadBits' trait allows reading bits of size unit (bool, u8, u32, etc.), at the given bit/cursor position
+///
+/// Implementors of 'ForceReadBits' are defined by one required method, ['force_read_bits'].
+/// Each call to ['force_read_bits'] will attempt to read bits of unit size from the source,
+/// if the source is on the last cursor position but doesn't have enough bits to finish the size of the return value
+/// it will push the bits it can fit to the front and return trailing zeros of to fill the unit, if it doesn't have
+/// any more units in the list, it will return an error value
+///
+/// Note: If the intended use is to grab each byte (size u8), Using an implementor of 'BufRead' will be more efficient.
+///
+/// # Examples
+///
+/// Read a u8 from a list of bit's first from bit position 0, and next and bit position 0, and cursor position 10
+///
+/// ```no_run
+/// use {BitCursor, ForceReadBits};
+/// use std::io::Seek;
+/// use std::io::SeekFrom;
+///
+/// fn main() -> std::io::Result<()> {
+///     let data: [bool; 24] = [
+///         false, true, true, false, true, false, true, false, true, true, true, true, false,
+///         false, false, true, false, true, true, true, false, true, false, false,
+///     ];
+///     let mut bcurs = BitCursor::new(&data[..]);
+///     let r = bcurs.force_read_bits::<u8>().unwrap();
+///     assert_eq!(0b01101010 as u8, r);
+///     let _ = bcurs.seek(SeekFrom::Start(10));
+///     let r = bcurs.force_read_bits::<u8>().unwrap();
+///     assert_eq!(0b11000101 as u8, r);
+/// }
+/// ```
+///
+/// Read a u16 from a list of u128's without enough bits to finish
+///
+/// ```no_run
+/// use {BitCursor, ForceReadBits};
+/// use std::io::Seek;
+/// use std::io::SeekFrom;
+/// fn read_u16_from_u128s_out_of_range() {
+///     let data: [u128; 3] = [
+///         0b10010010001001011000100001101011100100100010010110001000011010101001001000100101100010000110101110010010001001011000100001101010,
+///         0b10010010001001011000100001101011100100100010010110001000011010101001001000100101100010000110101010010010001001011000100001101010,
+///         0b10010010001001011000100001101011100100100010010110001000011010101001001000100101100010000110101010010010001001011000100001101010,
+///     ];
+///     let mut bcurs = BitCursor::new(&data[..]);
+///     let _ = bcurs.seek(SeekFrom::Start(((3 * 128) as i32 - 15) as u64));
+///     let r = bcurs.force_read_bits::<u16>().unwrap();
+///     assert_eq!(0b0001000011010100 as u16, r);
+/// }
+/// ```
 pub trait ForceReadBits<T> {
     fn force_read_bits<U: Unit>(&mut self) -> Result<U>;
 }
