@@ -629,6 +629,28 @@ impl<T> BitCursor<T> {
 /// }
 /// ```
 pub trait ReadBits<T> {
+    /// Read the bits of size <T: Unit> starting from the bit position of the cursor
+    ///
+    /// # Example
+    ///
+    /// ```no_run
+    /// use {BitCursor, ReadBits};
+    /// use std::io::Seek;
+    /// use std::io::SeekFrom;
+    /// fn main() -> std::io::Result<()> {
+    ///         let data: [u32; 3] = [
+    ///             0b10010010001001011000100001101010,
+    ///             0b10010010001001011000100001101010,
+    ///             0b10010010001001011000100001101010,
+    ///         ];
+    ///         let mut bcurs = BitCursor::new(&data[..]);
+    ///         let r = bcurs.read_bits::<u8>().unwrap();
+    ///         assert_eq!(0b10010010 as u8, r);
+    ///         let _ = bcurs.seek(SeekFrom::Start(10));
+    ///         let r = bcurs.read_bits::<u8>().unwrap();
+    ///         assert_eq!(0b10010110 as u8, r);
+    /// }
+    /// ```
     fn read_bits<U: Unit>(&mut self) -> Result<U>;
 }
 
