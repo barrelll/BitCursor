@@ -1146,7 +1146,6 @@ impl_bufread!(
     &'a mut Vec<u8>
 );
 
-/// Not implemented fully yet
 impl<'a, T: Unit> Write for BitCursor<&'a mut [T]> {
     fn write(&mut self, buf: &[u8]) -> Result<usize> {
         let cpos = self.cur_position() as usize;
