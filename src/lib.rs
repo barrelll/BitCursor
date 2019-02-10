@@ -1,5 +1,6 @@
 mod tests;
 
+use std::cell::RefCell;
 use std::cmp::min;
 use std::fmt::{Debug, Display};
 use std::io::{BufRead, Cursor, Error, ErrorKind, Read, Result, Seek, SeekFrom, Write};
@@ -775,6 +776,7 @@ impl<'a, T: Unit> ReadBits<T> for BitCursor<T> {
         }
     }
 }
+
 /// The 'ForceReadBits' trait allows reading bits of size unit (bool, u8, u32, etc.), at the given bit/cursor position
 ///
 /// Implementors of 'ForceReadBits' are defined by one required method, ['force_read_bits'].
@@ -1147,18 +1149,18 @@ impl_bufread!(
 );
 
 impl<'a, T: Unit> Write for BitCursor<&'a mut [T]> {
-    fn write(&mut self, buf: &[u8]) -> Result<usize> {
-        let cpos = self.cur_position() as usize;
-        let bpos = self.bit_position();
-        let inner = self.get_mut();
-        for (enumeration, val) in buf.iter().enumerate() {
-            if cpos + enumeration > inner.len() {
-                return Ok(enumeration);
-            }
-            let val = (T::unitfrom(*val as u128)
-                .shl(T::unitfrom((T::SIZE - (8 * enumeration) as u8) as u128)))
-            .shr(T::unitfrom(bpos as u128));
-            inner[cpos + enumeration] |= val;
+    fn write(&mut self, _buf: &[u8]) -> Result<usize> {
+        let ref_self = RefCell::new(self);
+        for (_enumeration, _val) in ref_self
+            .borrow_mut()
+            .get_mut()
+            .slice(0, 1 + 1)?
+            .iter()
+            .enumerate()
+        {
+            let _cpos = ref_self.borrow().cur_position();
+            let _bpos = ref_self.borrow().bit_position();
+            let _ = ref_self.borrow_mut().seek(SeekFrom::Current(8))?;
         }
         Ok(0)
     }

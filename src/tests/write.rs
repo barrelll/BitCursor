@@ -1,6 +1,6 @@
 mod u8 {
     use std::io::{Seek, SeekFrom, Write};
-    use {BitCursor};
+    use BitCursor;
     #[test]
     fn write() {
         let mut data: [u32; 3] = [
@@ -11,6 +11,6 @@ mod u8 {
         let mut bcurs = BitCursor::new(&mut data[..]);
         let _ = bcurs.seek(SeekFrom::Start(6));
         let buf = [1];
-        bcurs.write(&buf);
+        let _ = bcurs.write(&buf);
     }
 }
