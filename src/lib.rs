@@ -1,9 +1,8 @@
-mod tests;
+//mod tests;
 
-use std::cell::RefCell;
 use std::cmp::min;
 use std::fmt::{Debug, Display};
-use std::io::{BufRead, Cursor, Error, ErrorKind, Read, Result, Seek, SeekFrom, Write};
+use std::io::{BufRead, Cursor, Error, ErrorKind, Read, Result, Seek, SeekFrom};
 use std::ops::{BitAnd, BitAndAssign, BitOr, BitOrAssign, BitXor, BitXorAssign};
 
 pub trait Unit:
@@ -1147,24 +1146,3 @@ impl_bufread!(
     &'a Vec<u8>,
     &'a mut Vec<u8>
 );
-
-impl<'a, T: Unit> Write for BitCursor<&'a mut [T]> {
-    fn write(&mut self, _buf: &[u8]) -> Result<usize> {
-        let ref_self = RefCell::new(self);
-        for (_enumeration, _val) in ref_self
-            .borrow_mut()
-            .get_mut()
-            .slice(0, 1 + 1)?
-            .iter()
-            .enumerate()
-        {
-            let _cpos = ref_self.borrow().cur_position();
-            let _bpos = ref_self.borrow().bit_position();
-            let _ = ref_self.borrow_mut().seek(SeekFrom::Current(8))?;
-        }
-        Ok(0)
-    }
-    fn flush(&mut self) -> Result<()> {
-        Ok(())
-    }
-}
