@@ -374,7 +374,6 @@ impl<'a, I> ForceSlice<I> for &'a mut Vec<I> {
 /// It has implementations for some standard library traits such as
 /// ['Seek']
 /// ['Read']
-/// ['Write']
 /// ['BufRead']
 ///
 /// # Examples
