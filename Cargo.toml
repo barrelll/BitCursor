@@ -2,5 +2,9 @@
 name = "bitcursor"
 version = "0.1.0"
 authors = ["barrelll <jharrell_@outlook.com>"]
+# ...
+exclude = [
+    ".idea/*",
+]
 
 [dependencies]
