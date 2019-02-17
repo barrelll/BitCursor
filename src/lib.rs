@@ -431,6 +431,8 @@ impl<T> BitCursor<T> {
     /// let buff = BitCursor::new(Vec::new());
     /// # fn force_inference(_: &BitCursor<Vec<u8>>) {}
     /// # force_inference(&buff);
+    ///
+    /// let inner = buff.into_inner();
     /// ```
     pub fn into_inner(self) -> T {
         self.cursor.into_inner()
