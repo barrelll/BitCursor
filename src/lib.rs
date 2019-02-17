@@ -1,4 +1,4 @@
-//mod tests;
+mod tests;
 
 use std::cmp::min;
 use std::fmt::{Debug, Display};
