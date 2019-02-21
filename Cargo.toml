@@ -7,5 +7,6 @@ exclude = [
 ]
 description = "Keeps track of the bit position for an in wrapped memory buffer, and provides it with a read, seek implementation. Also applys a new trait called ReadBits which allows reading types that implement Unit from the cursor."
 license = "MIT"
+readme = "README.md"
 
 [dependencies]
