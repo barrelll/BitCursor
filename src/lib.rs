@@ -2,7 +2,7 @@ mod tests;
 
 use std::cmp::min;
 use std::fmt::{Debug, Display};
-use std::io::{BufRead, Cursor, Error, ErrorKind, Read, Result, Seek, SeekFrom};
+use std::io::{BufRead, Cursor, Error, ErrorKind, Read, Result, Seek, SeekFrom, Write};
 use std::ops::{BitAnd, BitAndAssign, BitOr, BitOrAssign, BitXor, BitXorAssign};
 
 pub trait Unit:
@@ -1147,3 +1147,13 @@ impl_bufread!(
     &'a Vec<u8>,
     &'a mut Vec<u8>
 );
+
+impl<'a> Write for BitCursor<&'a [u8]> {
+    fn write(&mut self, _buf: &[u8]) -> Result<usize> {
+        Ok(0)
+    }
+
+    fn flush(&mut self) -> Result<()> {
+        Ok(())
+    }
+}
