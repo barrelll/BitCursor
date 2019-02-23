@@ -8,7 +8,7 @@
 [license-badge]: https://img.shields.io/badge/license-MIT%2FApache-informational.svg
 [link3]: LICENSE.md
 ____
-Keeps track of the bit position for an in wrapped memory buffer, and provides it with a read and seek implementation. Also provides some traits for reading any size primitive, unsigned or signed integer **ReadBits** && **ForceReadBits**
+Keeps track of the bit position for an in wrapped memory buffer, and provides it with a read, write, and seek implementation. Also provides some traits for reading any size primitive, unsigned or signed integer **ReadBits** && **ForceReadBits**
 
 #### Examples
 Read a u16 from a list of u8's, first from bit position 0 and then from bit position 2 + cursor position 1.
