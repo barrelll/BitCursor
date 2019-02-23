@@ -1,6 +1,6 @@
 [package]
 name = "bitcursor"
-version = "1.0"
+version = "1.0.0"
 authors = ["barrelll <jharrell_@outlook.com>"]
 exclude = [
     ".idea/*",
