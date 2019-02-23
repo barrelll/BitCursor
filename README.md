@@ -8,6 +8,20 @@
 [license-badge]: https://img.shields.io/badge/license-MIT%2FApache-informational.svg
 [link3]: LICENSE.md
 ____
-Keeps track of the bit position for an in wrapped memory buffer, and provides it with a read and seek implementation. 
+Keeps track of the bit position for an in wrapped memory buffer, and provides it with a read and seek implementation. Also provides some traits for reading any size primitive, unsigned or signed integer **ReadBits** && **ForceReadBits**
 
-To see examples see the tests module
+#### Examples
+Read a u16 from a list of u8's, first from bit position 0 and then from bit position 2 + cursor position 1.
+
+    use {BitCursor, Readbits};
+    
+    let data: [u8; 4] = [0b01101010, 0b11110001, 0b01110100, 0b10100001];
+    let mut bcurs = BitCursor::new(&data[..]);
+    let r = bcurs.read_bits::<u16>().unwrap();
+    assert_eq!(0b0110101011110001 as u16, r);
+    let _ = bcurs.seek(SeekFrom::Start(10));
+    let r = bcurs.read_bits::<u16>().unwrap();
+    assert_eq!(0b1100010111010010 as u16, r);
+
+
+To see more examples see the tests module
