@@ -5,7 +5,7 @@
 [link1]: https://crates.io/crates/bitcursor
 [docs-badge]: https://img.shields.io/badge/docs-1.0-informational.svg
 [link2]: https://docs.rs/bitcursor/0.1.0/bitcursor/
-[license-badge]: https://img.shields.io/badge/license-MIT%2FApache-informational.svg
+[license-badge]: https://img.shields.io/badge/license-MIT-informational.svg
 [link3]: LICENSE.md
 ____
 Keeps track of the bit position for an in wrapped memory buffer, and provides it with a read, write, and seek implementation. Also provides some traits for reading any size primitive, unsigned or signed integer **ReadBits** && **ForceReadBits**
