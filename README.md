@@ -8,4 +8,4 @@ To see examples see the tests module
 [crate-image]: https://img.shields.io/badge/crates.io-1.0-important.svg
 [link1]: https://crates.io/crates/bitcursor
 [docs-badge]: https://img.shields.io/badge/docs-1.0.0-informational.svg
-[link1]: https://docs.rs/bitcursor/0.1.0/bitcursor/
+[link2]: https://docs.rs/bitcursor/0.1.0/bitcursor/
