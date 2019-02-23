@@ -3,6 +3,7 @@ Keeps track of the bit position for an in wrapped memory buffer, and provides it
 
 To see examples see the tests module
 
-[![Crates.io][s2]][crate]
+[![Crates.io][crate-image]][link1]
 
-[crate]: https://img.shields.io/badge/crates.io-1.0-important.svg
+[crate-image]: https://img.shields.io/badge/crates.io-1.0-important.svg
+[link1]: https://crates.io/crates/bitcursor
