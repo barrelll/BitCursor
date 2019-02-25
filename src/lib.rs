@@ -781,7 +781,7 @@ impl<'a, T: Unit> ReadBits<T> for BitCursor<T> {
 ///
 /// Implementors of 'ForceReadBits' are defined by one required method, ['force_read_bits'].
 /// Each call to ['force_read_bits'] will attempt to read bits of unit size from the source,
-/// if the source is on the last cursor position but doesn't have enough bits to finish the size of the return value
+/// if the source is on the last cursor position, but doesn't have enough bits to finish the size of the return value,
 /// it will push the bits it can fit to the front and return trailing zeros of to fill the unit, if it doesn't have
 /// any more units in the list, it will return an error value
 ///
