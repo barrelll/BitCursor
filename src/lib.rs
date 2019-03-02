@@ -1161,7 +1161,7 @@ impl<'a> Write for BitCursor<&'a mut [bool]> {
                     let bit = val.read_bit_at(i as u8).unwrap();
                     let cpos = ref_self.borrow().cur_position();
                     ref_self.borrow_mut().get_mut()[cpos as usize] = bit;
-                    let _ = ref_self.borrow_mut().seek(SeekFrom::Current(self_bit_size));
+                    let _ = ref_self.borrow_mut().seek(SeekFrom::Current(self_bit_size))?;
                 }
             }
         }
