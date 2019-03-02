@@ -1,7 +1,7 @@
 mod tests;
 
-use std::cmp::min;
 use std::cell::RefCell;
+use std::cmp::min;
 use std::fmt::{Debug, Display};
 use std::io::{BufRead, Cursor, Error, ErrorKind, Read, Result, Seek, SeekFrom, Write};
 use std::ops::{BitAnd, BitAndAssign, BitOr, BitOrAssign, BitXor, BitXorAssign};
