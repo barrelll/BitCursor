@@ -1,5 +1,5 @@
 mod bit {
-    use std::io::{Write, Seek, SeekFrom};
+    use std::io::{Seek, SeekFrom, Write};
     use BitCursor;
 
     #[test]

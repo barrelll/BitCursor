@@ -1150,6 +1150,7 @@ impl_bufread!(
 
 impl<'a> Write for BitCursor<&'a mut [bool]> {
     fn write(&mut self, buf: &[u8]) -> Result<usize> {
+        println!("{:?}", self);
         for val in buf {
             println!("val = {:b}", val);
         }
