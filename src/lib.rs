@@ -1,6 +1,7 @@
 mod tests;
 
 use std::cmp::min;
+use std::cell::RefCell;
 use std::fmt::{Debug, Display};
 use std::io::{BufRead, Cursor, Error, ErrorKind, Read, Result, Seek, SeekFrom, Write};
 use std::ops::{BitAnd, BitAndAssign, BitOr, BitOrAssign, BitXor, BitXorAssign};
@@ -65,7 +66,7 @@ macro_rules! impl_unit {
                     if rhs >= Self::SIZE {
                         None
                     } else {
-                        Some(*self & bitpos << rhs as $x > 1)
+                        Some(*self & bitpos << rhs as $x >= 1)
                     }
                 }
                 fn into_u8(self) -> u8 { self as u8 }
@@ -1150,9 +1151,19 @@ impl_bufread!(
 
 impl<'a> Write for BitCursor<&'a mut [bool]> {
     fn write(&mut self, buf: &[u8]) -> Result<usize> {
-        println!("{:?}", self);
+        let ref_self = RefCell::new(self);
+        let buf_bit_size = 8;
+        let self_bit_size = bool::SIZE as i64;
         for val in buf {
-            println!("val = {:b}", val);
+            println!("{:?}", val);
+            if buf_bit_size > self_bit_size {
+                for i in 0..buf_bit_size {
+                    let bit = val.read_bit_at(i as u8).unwrap();
+                    let cpos = ref_self.borrow().cur_position();
+                    ref_self.borrow_mut().get_mut()[cpos as usize] = bit;
+                    let _ = ref_self.borrow_mut().seek(SeekFrom::Current(self_bit_size));
+                }
+            }
         }
         Ok(0)
     }

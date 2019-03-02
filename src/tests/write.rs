@@ -1,5 +1,5 @@
 mod bit {
-    use std::io::{Seek, SeekFrom, Write};
+    use std::io::Write;
     use BitCursor;
 
     #[test]
@@ -10,8 +10,10 @@ mod bit {
             false, false, true, false, true, true, true, false, true, false, false, false, false,
             false, false, true, false, true, true, true, false, true, false, false, false, false,
         ];
-        let from: [u8; 2] = [255, 255];
+        let from: [u8; 2] = [0b11111111 as u8, 0];
         let mut bcurs = BitCursor::new(&mut to[..]);
-        bcurs.write(&from);
+        println!("{:?}", bcurs);
+        bcurs.write(&from).unwrap();
+        println!("{:?}", bcurs);
     }
 }
