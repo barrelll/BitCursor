@@ -1154,15 +1154,21 @@ impl<'a> Write for BitCursor<&'a mut [bool]> {
         let ref_self = RefCell::new(self);
         let buf_bit_size = 8;
         let self_bit_size = bool::SIZE as i64;
+        let length = ref_self.borrow().get_ref().len();
         for val in buf {
             println!("{:?}", val);
             if buf_bit_size > self_bit_size {
                 for i in 0..buf_bit_size {
                     let bit = val.read_bit_at(i as u8).unwrap();
-                    let cpos = ref_self.borrow().cur_position();
-                    ref_self.borrow_mut().get_mut()[cpos as usize] = bit;
+                    let cpos = ref_self.borrow().cur_position() as usize;
+                    if cpos > length {
+                        return Err(Error::new(ErrorKind::Other, "Cursor position out of range"))
+                    }
+                    ref_self.borrow_mut().get_mut()[cpos] = bit;
                     let _ = ref_self.borrow_mut().seek(SeekFrom::Current(self_bit_size))?;
                 }
+            } else {
+
             }
         }
         Ok(0)
