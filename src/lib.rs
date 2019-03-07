@@ -1149,11 +1149,11 @@ impl_bufread!(
     &'a mut Vec<u8>
 );
 
-impl<'a> Write for BitCursor<&'a mut [bool]> {
+impl<'a, T: Unit> Write for BitCursor<&'a mut [T]> {
     fn write(&mut self, buf: &[u8]) -> Result<usize> {
         let ref_self = RefCell::new(self);
         let buf_bit_size = 8;
-        let self_bit_size = bool::SIZE as i64;
+        let self_bit_size = T::SIZE as i64;
         let length = ref_self.borrow().get_ref().len();
         for val in buf {
             println!("{:?}", val);
@@ -1164,7 +1164,7 @@ impl<'a> Write for BitCursor<&'a mut [bool]> {
                     if cpos > length {
                         return Err(Error::new(ErrorKind::Other, "Cursor position out of range"));
                     }
-                    ref_self.borrow_mut().get_mut()[cpos] = bit;
+                    //                    ref_self.borrow_mut().get_mut()[cpos] = bit;
                     let _ = ref_self
                         .borrow_mut()
                         .seek(SeekFrom::Current(self_bit_size))?;
