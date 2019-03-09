@@ -26,6 +26,7 @@ pub trait Unit:
     fn checked_shr(self, rhs: u32) -> Option<Self>;
     fn checked_shl(self, rhs: u32) -> Option<Self>;
     fn read_bit_at(&self, rhs: u8) -> Option<bool>;
+    fn set_bit_at(&mut self, rhs: u8, value: bool);
 
     fn into_u8(self) -> u8;
     fn into_u16(self) -> u16;
@@ -67,6 +68,15 @@ macro_rules! impl_unit {
                         None
                     } else {
                         Some(*self & bitpos << rhs as $x >= 1)
+                    }
+                }
+                fn set_bit_at(&mut self, rhs: u8, value: bool) {
+                    if rhs >= Self::SIZE {
+                        panic!("{}", format!("set_bit_at: rhs: {:?} out of range of Unit size: {:?}", rhs, Self::SIZE))
+                    } else {
+                    println!("\t set {:#034b}", value.into_u128() << rhs);
+                        let value = Self::unitfrom(value.into_u128() << rhs);
+                        *self &= value;
                     }
                 }
                 fn into_u8(self) -> u8 { self as u8 }
@@ -127,6 +137,14 @@ impl Unit for bool {
             None
         } else {
             Some(*self)
+        }
+    }
+    fn set_bit_at(&mut self, rhs: u8, value: bool) {
+        if rhs >= Self::SIZE {
+            panic!("{}", format!("set_bit_at: rhs: {:?} out of range of Unit size: {:?}", rhs, Self::SIZE))
+        } else {
+            let value = Self::unitfrom(value.into_u128() << rhs);
+            *self &= value;
         }
     }
     fn into_u8(self) -> u8 {
@@ -1153,24 +1171,26 @@ impl<'a, T: Unit> Write for BitCursor<&'a mut [T]> {
     fn write(&mut self, buf: &[u8]) -> Result<usize> {
         let ref_self = RefCell::new(self);
         let buf_bit_size = 8;
-        let self_bit_size = T::SIZE as i64;
+        let self_bit_size = T::SIZE;
         let length = ref_self.borrow().get_ref().len();
         for val in buf {
-            if buf_bit_size > self_bit_size {
-                for i in 0..buf_bit_size {
-                    let bit = val.read_bit_at(i as u8).unwrap();
-                    let cpos = ref_self.borrow().cur_position() as usize;
-                    if cpos > length {
-                        return Err(Error::new(ErrorKind::Other, "Cursor position out of range"));
-                    }
-                    ref_self.borrow_mut().get_mut()[cpos] = T::unitfrom(bit.into_u128());
-                    let _ = ref_self
-                        .borrow_mut()
-                        .seek(SeekFrom::Current(self_bit_size))?;
-                }
-            } else {
-
+            let bpos = ref_self.borrow().bit_position();
+            let cpos = ref_self.borrow().cur_position() as usize;
+            let overlap = (buf_bit_size + bpos).checked_sub(self_bit_size);
+            if cpos > length {
+                return Err(Error::new(ErrorKind::Other, "Cursor position out of range"));
             }
+            let mut next = ref_self.borrow_mut().get_mut()[cpos];
+            println!("next = {:#034b}, bpos = {:?}, cpos = {:?}, overlap = {:?}", next.into_u128(), bpos, cpos, overlap);
+            for i in 0..8 - overlap.unwrap_or(0) {
+                let bit = val.read_bit_at(i).unwrap();
+                println!("\t{:?}", bit);
+                next.set_bit_at(i, bit);
+            }
+            println!("next = {:#034b}, bpos = {:?}, cpos = {:?}, overlap = {:?}", next.into_u128(), bpos, cpos, overlap);
+            let _ = ref_self
+                .borrow_mut()
+                .seek(SeekFrom::Current(buf_bit_size as i64))?;
         }
         Ok(0)
     }
