@@ -1164,7 +1164,7 @@ impl<'a, T: Unit> Write for BitCursor<&'a mut [T]> {
                     if cpos > length {
                         return Err(Error::new(ErrorKind::Other, "Cursor position out of range"));
                     }
-                    //                    ref_self.borrow_mut().get_mut()[cpos] = bit;
+                    ref_self.borrow_mut().get_mut()[cpos] = T::unitfrom(bit.into_u128());
                     let _ = ref_self
                         .borrow_mut()
                         .seek(SeekFrom::Current(self_bit_size))?;
