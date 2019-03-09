@@ -1156,7 +1156,6 @@ impl<'a, T: Unit> Write for BitCursor<&'a mut [T]> {
         let self_bit_size = T::SIZE as i64;
         let length = ref_self.borrow().get_ref().len();
         for val in buf {
-            println!("{:?}", val);
             if buf_bit_size > self_bit_size {
                 for i in 0..buf_bit_size {
                     let bit = val.read_bit_at(i as u8).unwrap();
