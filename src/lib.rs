@@ -74,9 +74,13 @@ macro_rules! impl_unit {
                     if rhs >= Self::SIZE {
                         panic!("{}", format!("set_bit_at: rhs: {:?} out of range of Unit size: {:?}", rhs, Self::SIZE))
                     } else {
-                        println!("\t set {:#034b} {:?}, {:?}", value.into_u128() << (Self::SIZE - 1 - rhs), Self::SIZE, rhs);
-                        let value = Self::unitfrom(value.into_u128() << (Self::SIZE - 1 - rhs));
-                        *self |= value;
+                        if value {
+                            let value = Self::unitfrom((1 as u128) << (Self::SIZE - 1 - rhs));
+                            *self |= value;
+                        } else {
+                            let value = Self::unitfrom(!((1 as u128) << (Self::SIZE - 1 - rhs)));
+                            *self &= value;
+                        }
                     }
                 }
                 fn into_u8(self) -> u8 { self as u8 }
