@@ -67,16 +67,16 @@ macro_rules! impl_unit {
                     if rhs >= Self::SIZE {
                         None
                     } else {
-                        Some(*self & bitpos << rhs as $x >= 1)
+                        Some(*self & bitpos << (Self::SIZE - 1 - rhs) as $x >= 1)
                     }
                 }
                 fn set_bit_at(&mut self, rhs: u8, value: bool) {
                     if rhs >= Self::SIZE {
                         panic!("{}", format!("set_bit_at: rhs: {:?} out of range of Unit size: {:?}", rhs, Self::SIZE))
                     } else {
-                    println!("\t set {:#034b}", value.into_u128() << rhs);
-                        let value = Self::unitfrom(value.into_u128() << rhs);
-                        *self &= value;
+                        println!("\t set {:#034b} {:?}, {:?}", value.into_u128() << (Self::SIZE - 1 - rhs), Self::SIZE, rhs);
+                        let value = Self::unitfrom(value.into_u128() << (Self::SIZE - 1 - rhs));
+                        *self |= value;
                     }
                 }
                 fn into_u8(self) -> u8 { self as u8 }
@@ -144,7 +144,7 @@ impl Unit for bool {
             panic!("{}", format!("set_bit_at: rhs: {:?} out of range of Unit size: {:?}", rhs, Self::SIZE))
         } else {
             let value = Self::unitfrom(value.into_u128() << rhs);
-            *self &= value;
+            *self |= value;
         }
     }
     fn into_u8(self) -> u8 {
