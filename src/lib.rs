@@ -1188,10 +1188,11 @@ impl<'a, T: Unit> Write for BitCursor<&'a mut [T]> {
             println!("next = {:#034b}, bpos = {:?}, cpos = {:?}, overlap = {:?}", next.into_u128(), bpos, cpos, overlap);
             for i in 0..8 - overlap.unwrap_or(0) {
                 let bit = val.read_bit_at(i).unwrap();
-                println!("\t{:?}", bit);
-                next.set_bit_at(i, bit);
+                println!("\tbit = {:?}, write pos = {:?}, i = {:?}", bit, bpos+i, i);
+                next.set_bit_at(bpos + i, bit);
             }
-            println!("next = {:#034b}, bpos = {:?}, cpos = {:?}, overlap = {:?}", next.into_u128(), bpos, cpos, overlap);
+            println!("\tnext = {:#034b}, bpos = {:?}, cpos = {:?}, overlap = {:?}", next.into_u128(), bpos, cpos, overlap);
+            ref_self.borrow_mut().get_mut()[cpos] = next;
             let _ = ref_self
                 .borrow_mut()
                 .seek(SeekFrom::Current(buf_bit_size as i64))?;
