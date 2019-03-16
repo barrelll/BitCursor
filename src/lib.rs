@@ -1180,16 +1180,30 @@ impl<'a, T: Unit> Write for BitCursor<&'a mut [T]> {
         for val in buf {
             let bpos = ref_self.borrow().bit_position();
             let cpos = ref_self.borrow().cur_position() as usize;
-            let overlap = (buf_bit_size + bpos).checked_sub(self_bit_size);
+            let overlap = (buf_bit_size + bpos).checked_sub(self_bit_size).unwrap_or(0);
             if cpos > length {
                 return Err(Error::new(ErrorKind::Other, "Cursor position out of range"));
             }
             let mut next = ref_self.borrow_mut().get_mut()[cpos];
             println!("next = {:#034b}, bpos = {:?}, cpos = {:?}, overlap = {:?}", next.into_u128(), bpos, cpos, overlap);
-            for i in 0..8 - overlap.unwrap_or(0) {
+            for i in 0..8 - overlap {
                 let bit = val.read_bit_at(i).unwrap();
                 println!("\tbit = {:?}, write pos = {:?}, i = {:?}", bit, bpos+i, i);
                 next.set_bit_at(bpos + i, bit);
+            }
+            if overlap > 0 {
+                if cpos+1 > length {
+                    return Err(Error::new(ErrorKind::Other, "Cursor position out of range"));
+                }
+                let v = ref_self.borrow_mut().get_mut()[cpos+1];
+                let mut j = 0;
+                for i in 8-overlap..8 {
+                    let bit = val.read_bit_at(i).unwrap();
+                    println!("\toverlap bit = {:?}, write pos = {:?}, i = {:?}", bit, bpos+i, i);
+                    next.set_bit_at(j, bit);
+                    j += 1;
+                }
+                ref_self.borrow_mut().get_mut()[cpos+1] = next;
             }
             println!("\tnext = {:#034b}, bpos = {:?}, cpos = {:?}, overlap = {:?}", next.into_u128(), bpos, cpos, overlap);
             ref_self.borrow_mut().get_mut()[cpos] = next;
