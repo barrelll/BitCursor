@@ -19,7 +19,7 @@ mod bit {
             false, false, true, false, true, true, true, false, true, false, false, false, false,
             false, false, true, false, true, true, true, false, true, false, false, false, false,
         ];
-//        assert_eq!(&equals[..], &bcurs.get_ref()[..]);
+        assert_eq!(&equals[..], &bcurs.get_ref()[..]);
         let _ = bcurs.seek(SeekFrom::Start(10));
         let _ = bcurs.write(&from[..]).unwrap();
         let equals = [
@@ -28,7 +28,7 @@ mod bit {
             false, true, false, true, true, true, false, true, false, false, false, false, false,
             false, true, false, true, true, true, false, true, false, false, false, false,
         ];
-//        assert_eq!(&equals[..], &bcurs.get_ref()[..]);
+        assert_eq!(&equals[..], &bcurs.get_ref()[..]);
     }
 }
 
