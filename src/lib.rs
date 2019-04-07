@@ -6,6 +6,8 @@ use std::fmt::{Debug, Display};
 use std::io::{BufRead, Cursor, Error, ErrorKind, Read, Result, Seek, SeekFrom, Write};
 use std::ops::{BitAnd, BitAndAssign, BitOr, BitOrAssign, BitXor, BitXorAssign};
 
+/// Any type that implements trait 'Unit' and wrapped in a 'BitCursor'
+/// will also share an implementation of 'ReadBits' and 'ForceReadBits' traits
 pub trait Unit:
     BitAnd<Output = Self>
     + BitAndAssign
