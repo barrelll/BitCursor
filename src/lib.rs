@@ -1209,22 +1209,24 @@ impl<'a, T: Unit> Write for BitCursor<&'a mut [T]> {
                     let bit = val.read_bit_at(i).unwrap();
                     next.set_bit_at(bpos + i, bit);
                 }
+                ref_self.borrow_mut().get_mut()[cpos] = next;
+                let _ = ref_self
+                    .borrow_mut()
+                    .seek(SeekFrom::Current(buf_bit_size as i64))?;
                 if overlap > 0 {
+                    let cpos = ref_self.borrow().cur_position() as usize;
                     if cpos + 1 > length {
                         return Err(Error::new(ErrorKind::Other, "Cursor position out of range"));
                     }
+                    let mut next = ref_self.borrow_mut().get_mut()[cpos];
                     let mut j = 0;
                     for i in 8 - overlap..8 {
                         let bit = val.read_bit_at(i).unwrap();
                         next.set_bit_at(j, bit);
                         j += 1;
                     }
-                    ref_self.borrow_mut().get_mut()[cpos + 1] = next;
+                    ref_self.borrow_mut().get_mut()[cpos] = next;
                 }
-                ref_self.borrow_mut().get_mut()[cpos] = next;
-                let _ = ref_self
-                    .borrow_mut()
-                    .seek(SeekFrom::Current(buf_bit_size as i64))?;
             }
         }
         Ok(0)
