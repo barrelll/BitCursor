@@ -1204,6 +1204,9 @@ impl<'a, T: Unit> Write for BitCursor<&'a mut [T]> {
                         .seek(SeekFrom::Current(self_bit_size as i64))?;
                 }
             } else {
+                if cpos + 1 > length {
+                    return Err(Error::new(ErrorKind::Other, "Cursor position out of range"));
+                }
                 let mut next = ref_self.borrow_mut().get_mut()[cpos];
                 for i in 0..8 - overlap {
                     let bit = val.read_bit_at(i).unwrap();
