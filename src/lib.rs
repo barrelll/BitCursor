@@ -1229,7 +1229,7 @@ impl<'a, T: Unit> Write for BitCursor<&'a mut [T]> {
                 }
             }
         }
-        Ok(0)
+        Ok(buf.len() * 8)
     }
 
     fn flush(&mut self) -> Result<()> {
