@@ -1,10 +1,13 @@
-//mod tests;
+mod tests;
 
+use std::cell::RefCell;
 use std::cmp::min;
 use std::fmt::{Debug, Display};
-use std::io::{BufRead, Cursor, Error, ErrorKind, Read, Result, Seek, SeekFrom};
+use std::io::{BufRead, Cursor, Error, ErrorKind, Read, Result, Seek, SeekFrom, Write};
 use std::ops::{BitAnd, BitAndAssign, BitOr, BitOrAssign, BitXor, BitXorAssign};
 
+/// Any type that implements trait 'Unit' and wrapped in a 'BitCursor'
+/// will also share an implementation of 'ReadBits' and 'ForceReadBits' traits
 pub trait Unit:
     BitAnd<Output = Self>
     + BitAndAssign
@@ -25,6 +28,7 @@ pub trait Unit:
     fn checked_shr(self, rhs: u32) -> Option<Self>;
     fn checked_shl(self, rhs: u32) -> Option<Self>;
     fn read_bit_at(&self, rhs: u8) -> Option<bool>;
+    fn set_bit_at(&mut self, rhs: u8, value: bool);
 
     fn into_u8(self) -> u8;
     fn into_u16(self) -> u16;
@@ -65,7 +69,20 @@ macro_rules! impl_unit {
                     if rhs >= Self::SIZE {
                         None
                     } else {
-                        Some(*self & bitpos << rhs as $x > 1)
+                        Some(*self & bitpos << (Self::SIZE - 1 - rhs) as $x >= 1)
+                    }
+                }
+                fn set_bit_at(&mut self, rhs: u8, value: bool) {
+                    if rhs >= Self::SIZE {
+                        panic!("{}", format!("set_bit_at: rhs: {:?} out of range of Unit size: {:?}", rhs, Self::SIZE))
+                    } else {
+                        if value {
+                            let value = Self::unitfrom((1 as u128) << (Self::SIZE - 1 - rhs));
+                            *self |= value;
+                        } else {
+                            let value = Self::unitfrom(!((1 as u128) << (Self::SIZE - 1 - rhs)));
+                            *self &= value;
+                        }
                     }
                 }
                 fn into_u8(self) -> u8 { self as u8 }
@@ -126,6 +143,21 @@ impl Unit for bool {
             None
         } else {
             Some(*self)
+        }
+    }
+    fn set_bit_at(&mut self, rhs: u8, value: bool) {
+        if rhs >= Self::SIZE {
+            panic!(
+                "{}",
+                format!(
+                    "set_bit_at: rhs: {:?} out of range of Unit size: {:?}",
+                    rhs,
+                    Self::SIZE
+                )
+            )
+        } else {
+            let value = Self::unitfrom(value.into_u128() << rhs);
+            *self |= value;
         }
     }
     fn into_u8(self) -> u8 {
@@ -781,7 +813,7 @@ impl<'a, T: Unit> ReadBits<T> for BitCursor<T> {
 ///
 /// Implementors of 'ForceReadBits' are defined by one required method, ['force_read_bits'].
 /// Each call to ['force_read_bits'] will attempt to read bits of unit size from the source,
-/// if the source is on the last cursor position but doesn't have enough bits to finish the size of the return value
+/// if the source is on the last cursor position, but doesn't have enough bits to finish the size of the return value,
 /// it will push the bits it can fit to the front and return trailing zeros of to fill the unit, if it doesn't have
 /// any more units in the list, it will return an error value
 ///
@@ -1147,3 +1179,65 @@ impl_bufread!(
     &'a Vec<u8>,
     &'a mut Vec<u8>
 );
+
+impl<'a, T: Unit> Write for BitCursor<&'a mut [T]> {
+    fn write(&mut self, buf: &[u8]) -> Result<usize> {
+        let ref_self = RefCell::new(self);
+        let buf_bit_size = 8;
+        let self_bit_size = T::SIZE;
+        let length = ref_self.borrow().get_ref().len();
+        for val in buf {
+            let bpos = ref_self.borrow().bit_position();
+            let cpos = ref_self.borrow().cur_position() as usize;
+            let overlap = (buf_bit_size + bpos)
+                .checked_sub(self_bit_size)
+                .unwrap_or(0);
+            if cpos > length {
+                return Err(Error::new(ErrorKind::Other, "Cursor position out of range"));
+            }
+
+            if buf_bit_size > self_bit_size {
+                for i in 0..buf_bit_size {
+                    let bit = val.read_bit_at(i as u8).unwrap();
+                    let cpos = ref_self.borrow().cur_position();
+                    ref_self.borrow_mut().get_mut()[cpos as usize] = T::unitfrom(bit.into_u128());
+                    let _ = ref_self
+                        .borrow_mut()
+                        .seek(SeekFrom::Current(self_bit_size as i64))?;
+                }
+            } else {
+                if cpos + 1 > length {
+                    return Err(Error::new(ErrorKind::Other, "Cursor position out of range"));
+                }
+                let mut next = ref_self.borrow_mut().get_mut()[cpos];
+                for i in 0..8 - overlap {
+                    let bit = val.read_bit_at(i).unwrap();
+                    next.set_bit_at(bpos + i, bit);
+                }
+                ref_self.borrow_mut().get_mut()[cpos] = next;
+                let _ = ref_self
+                    .borrow_mut()
+                    .seek(SeekFrom::Current(buf_bit_size as i64))?;
+                if overlap > 0 {
+                    let cpos = ref_self.borrow().cur_position() as usize;
+                    if cpos + 1 > length {
+                        return Err(Error::new(ErrorKind::Other, "Cursor position out of range"));
+                    }
+                    let mut next = ref_self.borrow_mut().get_mut()[cpos];
+                    let mut j = 0;
+                    for i in 8 - overlap..8 {
+                        let bit = val.read_bit_at(i).unwrap();
+                        next.set_bit_at(j, bit);
+                        j += 1;
+                    }
+                    ref_self.borrow_mut().get_mut()[cpos] = next;
+                }
+            }
+        }
+        Ok(buf.len() * 8)
+    }
+
+    fn flush(&mut self) -> Result<()> {
+        Ok(())
+    }
+}
