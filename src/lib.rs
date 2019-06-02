@@ -409,7 +409,7 @@ impl<'a, I> ForceSlice<I> for &'a mut Vec<I> {
 /// ['BufRead']
 ///
 /// # Examples
-/// ```no_run
+/// ``` ignore
 /// use std::io::{Read, Seek, SeekFrom};
 /// use BitCursor;
 /// fn read_from_bits() {
@@ -439,7 +439,7 @@ impl<T> BitCursor<T> {
     ///
     /// # Examples
     ///
-    /// ```no_run
+    /// ``` ignore
     /// use BitCursor;
     ///
     /// let buff = BitCursor::new(Vec::new());
@@ -457,7 +457,7 @@ impl<T> BitCursor<T> {
     ///
     /// # Examples
     ///
-    /// ```no_run
+    /// ``` ignore
     /// use BitCursor;
     ///
     /// let buff = BitCursor::new(Vec::new());
@@ -474,7 +474,7 @@ impl<T> BitCursor<T> {
     ///
     /// # Examples
     ///
-    /// ```
+    /// ```ignore
     /// use BitCursor;
     ///
     /// let buff = BitCursor::new(Vec::new());
@@ -494,7 +494,7 @@ impl<T> BitCursor<T> {
     ///
     /// # Examples
     ///
-    /// ```
+    /// ``` ignore
     /// use BitCursor;
     ///
     /// let mut buff = BitCursor::new(Vec::new());
@@ -511,7 +511,7 @@ impl<T> BitCursor<T> {
     ///
     /// # Examples
     ///
-    /// ```
+    /// ``` ignore
     /// use BitCursor;
     /// use std::io::prelude::*;
     /// use std::io::SeekFrom;
@@ -534,7 +534,7 @@ impl<T> BitCursor<T> {
     ///
     /// # Examples
     ///
-    /// ```
+    /// ``` ignore
     /// use BitCursor;
     /// use std::io::prelude::*;
     /// use std::io::SeekFrom;
@@ -560,7 +560,7 @@ impl<T> BitCursor<T> {
     ///
     /// # Examples
     ///
-    /// ```
+    /// ``` ignore
     /// use BitCursor;
     ///
     /// let mut buff: BitCursor<Vec<u8>> = BitCursor::new(vec![1, 2, 3, 4, 5]);
@@ -583,7 +583,7 @@ impl<T> BitCursor<T> {
     ///
     /// # Examples
     ///
-    /// ```
+    /// ``` ignore
     /// use BitCursor;
     ///
     /// let mut buff: BitCursor<Vec<u8>> = BitCursor::new(vec![1, 2, 3, 4, 5]);
@@ -613,7 +613,7 @@ impl<T> BitCursor<T> {
 ///
 /// Read a u128 from a list of u8's first from bit position 0, and next and bit position 2, and cursor position 1 (8+2 = 10)
 ///
-/// ```no_run
+/// ``` ignore
 /// use {BitCursor, ReadBits};
 /// use std::io::Seek;
 /// use std::io::SeekFrom;
@@ -643,7 +643,7 @@ impl<T> BitCursor<T> {
 ///
 /// Read a u8 from a list of u32's
 ///
-/// ```no_run
+/// ``` ignore
 /// use {BitCursor, ReadBits};
 /// use std::io::Seek;
 /// use std::io::SeekFrom;
@@ -666,7 +666,7 @@ pub trait ReadBits<T> {
     ///
     /// # Example
     ///
-    /// ```no_run
+    /// ``` ignore
     /// use {BitCursor, ReadBits};
     /// use std::io::Seek;
     /// use std::io::SeekFrom;
@@ -823,7 +823,7 @@ impl<'a, T: Unit> ReadBits<T> for BitCursor<T> {
 ///
 /// Read a u8 from a list of bit's first from bit position 0, and next and bit position 0, and cursor position 10
 ///
-/// ```no_run
+/// ``` ignore
 /// use {BitCursor, ForceReadBits};
 /// use std::io::Seek;
 /// use std::io::SeekFrom;
@@ -845,7 +845,7 @@ impl<'a, T: Unit> ReadBits<T> for BitCursor<T> {
 ///
 /// Read a u16 from a list of u128's without enough bits to finish
 ///
-/// ```no_run
+/// ``` ignore
 /// use {BitCursor, ForceReadBits};
 /// use std::io::Seek;
 /// use std::io::SeekFrom;
@@ -869,7 +869,7 @@ pub trait ForceReadBits<T> {
     ///
     /// Read a u32 from bit's without enough to fill a u32
     ///
-    /// ```no_run
+    /// ``` ignore
     /// use {BitCursor, ForceReadBits};
     /// use std::io::Seek;
     /// use std::io::SeekFrom;
